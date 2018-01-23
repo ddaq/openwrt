@@ -123,6 +123,16 @@ define Device/linksys-wrt3200acm
 endef
 TARGET_DEVICES += linksys-wrt3200acm
 
+define Device/linksys-wrt32x
+  $(call Device/linksys,WRT32X (Venom))
+  $(Device/NAND-128K)
+  $(Device/UBI-factory)
+  KERNEL_SIZE := 3072k
+  DEVICE_DTS := armada-385-linksys-venom
+  DEVICE_PACKAGES += kmod-mwifiex-sdio
+endef
+TARGET_DEVICES += linksys-wrt32x
+
 define Device/linksys-wrt1900acs
   $(call Device/linksys,WRT1900ACS (Shelby))
   $(Device/armada-385-linksys)
