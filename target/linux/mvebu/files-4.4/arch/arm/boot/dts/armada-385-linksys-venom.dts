@@ -1,7 +1,7 @@
 /*
- * Device Tree file for the Linksys WRT3200ACM (Rango)
+ * Device Tree file for the Linksys WRT32X (Venom)
  *
- * Copyright (C) 2016 Imre Kaloz <kaloz@openwrt.org>
+ * Copyright (C) 2017 Imre Kaloz <kaloz@openwrt.org>
  *
  *
  * This file is dual-licensed: you can use it either under the terms
@@ -43,8 +43,8 @@
 #include "armada-385.dtsi"
 
 / {
-	model = "Linksys WRT3200ACM";
-	compatible = "linksys,rango", "linksys,armada385", "marvell,armada385",
+	model = "Linksys WRT32X";
+	compatible = "linksys,venom", "linksys,armada385", "marvell,armada385",
 		     "marvell,armada380";
 
 	chosen {
@@ -86,37 +86,47 @@
 					reg = <0x68>;
 
 					wan_amber@0 {
-						label = "rango:amber:wan";
+						label = "venom:amber:wan";
 						reg = <0x0>;
 					};
 
-					wan_white@1 {
-						label = "rango:white:wan";
+					wan_blue@1 {
+						label = "venom:blue:wan";
 						reg = <0x1>;
 					};
 
+					wlan_2g@2 {
+						label = "venom:blue:wlan_2g";
+						reg = <0x2>;
+					};
+
+					wlan_5g@3 {
+						label = "venom:blue:wlan_5g";
+						reg = <0x3>;
+					};
+
 					usb2@5 {
-						label = "rango:white:usb2";
+						label = "venom:blue:usb2";
 						reg = <0x5>;
 					};
 
 					usb3_1@6 {
-						label = "rango:white:usb3_1";
+						label = "venom:blue:usb3_1";
 						reg = <0x6>;
 					};
 
 					usb3_2@7 {
-						label = "rango:white:usb3_2";
+						label = "venom:blue:usb3_2";
 						reg = <0x7>;
 					};
 
-					wps_white@8 {
-						label = "rango:white:wps";
+					wps_blue@8 {
+						label = "venom:blue:wps";
 						reg = <0x8>;
 					};
 
 					wps_amber@9 {
-						label = "rango:amber:wps";
+						label = "venom:amber:wps";
 						reg = <0x9>;
 					};
 				};
@@ -195,7 +205,7 @@
 				partition@0 {
 					label = "u-boot";
 					reg = <0x0000000 0x200000>;  /* 2MB */
-					read-only;
+					/* read-only; */
 				};
 
 				partition@200000 {
@@ -208,58 +218,45 @@
 					reg = <0x220000 0x40000>;    /* 256KB */
 				};
 
+				partition@180000 {
+					label = "unused_area";
+					reg = <0x260000 0x5c0000>;   /* 5.75MB */
+				};
+
 				partition@7e0000 {
 					label = "devinfo";
 					reg = <0x7e0000 0x40000>;   /* 256KB */
 					read-only;
 				};
 
-				partition@820000 {
-					label = "sysdiag";
-					reg = <0x820000 0x1e0000>;   /* 1920KB */
-					read-only;
-				};
-
 				/* kernel1 overlaps with rootfs1 by design */
-				partition@a00000 {
+				partition@900000 {
 					label = "kernel1";
-					reg = <0xa00000 0x5000000>;  /* 80MB */
+					reg = <0x900000 0x7b00000>;  /* 123MB */
 				};
 
-				partition@1000000 {
+				partition@c00000 {
 					label = "rootfs1";
-					reg = <0x1000000 0x4a00000>;  /* 74MB */
+					reg = <0xc00000 0x7800000>;  /* 120MB */
 				};
 
 				/* kernel2 overlaps with rootfs2 by design */
-				partition@5a00000 {
+				partition@8400000 {
 					label = "kernel2";
-					reg = <0x5a00000 0x5000000>; /* 80MB */
+					reg = <0x8400000 0x7b00000>; /* 123MB */
 				};
 
-				partition@6000000 {
+				partition@8700000 {
 					label = "rootfs2";
-					reg = <0x6000000 0x4a00000>; /* 74MB */
+					reg = <0x8700000 0x7800000>;  /* 120MB */
 				};
 
-				/*
-				 * 86MB, last MB is for the BBT, not writable
-				 */
-				partition@aa00000 {
-					label = "syscfg";
-					reg = <0xaa00000 0x5600000>;
+				/* last MB is for the BBT, not writable */
+				partition@ff00000 {
+					label = "BBT";
+					reg = <0xff00000 0x100000>;
 				};
 
-				/*
-				 * Unused area between "s_env" and "devinfo".
-				 * Moved here because otherwise the renumbered
-				 * partitions would break the bootloader
-				 * supplied bootargs
-				 */
-				partition@180000 {
-					label = "unused_area";
-					reg = <0x260000 0x5c0000>;   /* 5.75MB */
-				};
 			};
 		};
 
@@ -307,14 +304,14 @@
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
 		enable-active-high;
-		gpio = <&gpio1 15 GPIO_ACTIVE_HIGH>;
+		gpio = <&gpio1 16 GPIO_ACTIVE_HIGH>;
 	};
 
 	gpio_keys {
 		compatible = "gpio-keys";
 		#address-cells = <1>;
 		#size-cells = <0>;
-		pinctrl-0 = <&reset_key_pin &wps_key_pin>;
+		pinctrl-0 = <&keys_pin>;
 		pinctrl-names = "default";
 
 		button@1 {
@@ -332,29 +329,17 @@
 
 	gpio-leds {
 		compatible = "gpio-leds";
-		pinctrl-0 = <&power_led_pin &sata_led_pin &wlan_2g_led_pin &wlan_5g_led_pin>;
+		pinctrl-0 = <&power_led_pin &sata_led_pin>;
 		pinctrl-names = "default";
 
-		sata {
-			label = "rango:white:sata";
-			gpios = <&gpio0 21 GPIO_ACTIVE_LOW>;
-			linux,default-trigger = "disk-activity";
-		};
-
-		wlan_2g {
-			label = "rango:white:wlan_2g";
-			gpios = <&gpio1 13 GPIO_ACTIVE_LOW>;
-		};
-
-		wlan_5g {
-			label = "rango:white:wlan_5g";
-			gpios = <&gpio1 14 GPIO_ACTIVE_LOW>;
-		};
-
 		power {
-			label = "rango:white:power";
 			gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
 			default-state = "on";
+		};
+
+		sata {
+			gpios = <&gpio0 21 GPIO_ACTIVE_LOW>;
+			default-state = "off";
 		};
 	};
 
@@ -403,6 +388,16 @@
 		};
 	};
 
+	gpio-leds {
+		power {
+			label = "venom:blue:power";
+		};
+
+		sata {
+			label = "venom:blue:sata";
+		};
+	};
+
 	mvsw61xx {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -418,38 +413,23 @@
 };
 
 &pinctrl {
-	sata_led_pin: sata-led-pin {
-		marvell,pins = "mpp21";
-		marvell,function = "gpio";
-	};
-
-	wps_key_pin: wps-key-pin {
-		marvell,pins = "mpp24";
-		marvell,function = "gpio";
-	};
-
-	reset_key_pin: reset-key-pin {
-		marvell,pins = "mpp29";
-		marvell,function = "gpio";
-	};
-
-	wlan_2g_led_pin: wlan-2g-led-pin {
-		marvell,pins = "mpp45";
-		marvell,function = "gpio";
-	};
-
-	wlan_5g_led_pin: wlan-5g-led-pin {
-		marvell,pins = "mpp46";
-		marvell,function = "gpio";
-	};
-
-	xhci0_vbus_pins: xhci0-vbus-pins {
-		marvell,pins = "mpp47";
+	keys_pin: keys-pin {
+		marvell,pins = "mpp24", "mpp29";
 		marvell,function = "gpio";
 	};
 
 	power_led_pin: power-led-pin {
 		marvell,pins = "mpp56";
+		marvell,function = "gpio";
+	};
+
+	sata_led_pin: sata-led-pin {
+		marvell,pins = "mpp21";
+		marvell,function = "gpio";
+	};
+
+	xhci0_vbus_pins: xhci0-vbus-pins {
+		marvell,pins = "mpp47";
 		marvell,function = "gpio";
 	};
 };
