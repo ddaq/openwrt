@@ -1501,9 +1501,9 @@
  
 --- a/net/netfilter/nf_queue.c
 +++ b/net/netfilter/nf_queue.c
-@@ -28,6 +28,23 @@
+@@ -27,6 +27,23 @@
+  * receives, no matter what.
   */
- static const struct nf_queue_handler __rcu *queue_handler __read_mostly;
  
 +#if defined(CONFIG_IMQ) || defined(CONFIG_IMQ_MODULE)
 +static const struct nf_queue_handler __rcu *queue_imq_handler __read_mostly;
@@ -1524,8 +1524,8 @@
 +
  /* return EBUSY when somebody else is registered, return EEXIST if the
   * same handler is registered, return 0 in case of success. */
- void nf_register_queue_handler(const struct nf_queue_handler *qh)
-@@ -116,7 +133,8 @@ void nf_queue_nf_hook_drop(struct net *n
+ void nf_register_queue_handler(struct net *net, const struct nf_queue_handler *qh)
+@@ -114,7 +131,8 @@ void nf_queue_nf_hook_drop(struct net *net, struct nf_hook_ops *ops)
  int nf_queue(struct sk_buff *skb,
  	     struct nf_hook_ops *elem,
  	     struct nf_hook_state *state,
@@ -1535,11 +1535,11 @@
  {
  	int status = -ENOENT;
  	struct nf_queue_entry *entry = NULL;
-@@ -124,7 +142,17 @@ int nf_queue(struct sk_buff *skb,
- 	const struct nf_queue_handler *qh;
+@@ -123,7 +141,17 @@ int nf_queue(struct sk_buff *skb,
+ 	struct net *net = state->net;
  
  	/* QUEUE == DROP if no one is waiting, to be safe. */
--	qh = rcu_dereference(queue_handler);
+-	qh = rcu_dereference(net->nf.queue_handler);
 +	if (queuetype == NF_IMQ_QUEUE) {
 +#if defined(CONFIG_IMQ) || defined(CONFIG_IMQ_MODULE)
 +		qh = rcu_dereference(queue_imq_handler);
@@ -1548,13 +1548,13 @@
 +		goto err;
 +#endif
 +	} else {
-+		qh = rcu_dereference(queue_handler);
++		qh = rcu_dereference(net->nf.queue_handler);
 +	}
 +
  	if (!qh) {
  		status = -ESRCH;
  		goto err;
-@@ -199,8 +227,10 @@ void nf_reinject(struct nf_queue_entry *
+@@ -198,8 +226,10 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
  		local_bh_enable();
  		break;
  	case NF_QUEUE:
