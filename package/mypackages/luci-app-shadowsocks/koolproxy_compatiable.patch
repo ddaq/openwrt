@@ -1,0 +1,248 @@
+diff --git a/files/luci/i18n/shadowsocks.zh-cn.po b/files/luci/i18n/shadowsocks.zh-cn.po
+index f2c5b1b..26f0533 100644
+--- a/files/luci/i18n/shadowsocks.zh-cn.po
++++ b/files/luci/i18n/shadowsocks.zh-cn.po
+@@ -61,6 +61,9 @@ msgstr "全局代理"
+ msgid "Global Settings"
+ msgstr "全局设置"
+ 
++msgid "Host"
++msgstr "主机"
++
+ msgid "LAN Hosts"
+ msgstr "内网主机"
+ 
+diff --git a/files/luci/model/cbi/shadowsocks/access-control.lua b/files/luci/model/cbi/shadowsocks/access-control.lua
+index b4fa5b8..d00774a 100644
+--- a/files/luci/model/cbi/shadowsocks/access-control.lua
++++ b/files/luci/model/cbi/shadowsocks/access-control.lua
+@@ -88,6 +88,15 @@ s.template = "cbi/tblsection"
+ s.addremove = true
+ s.anonymous = true
+ 
++o = s:option(Value, "host", translate("Host"))
++luci.ip.neighbors({family = 4}, function(n)
++	if n.reachable then
++		o:value(n.dest:string(), "%s (%s)" %{n.dest:string(), n.mac})
++	end
++end)
++o.datatype = "ip4addr"
++o.rmempty = false
++
+ o = s:option(Value, "macaddr", translate("MAC-Address"))
+ luci.sys.net.mac_hints(function(mac, name)
+ 	o:value(mac, "%s (%s)" %{mac, name})
+diff --git a/files/root/etc/init.d/shadowsocks b/files/root/etc/init.d/shadowsocks
+index 4a73908..a2d1075 100644
+--- a/files/root/etc/init.d/shadowsocks
++++ b/files/root/etc/init.d/shadowsocks
+@@ -60,11 +60,16 @@ get_server_ips() {
+ 	echo $(uci_get_by_name $1 server)
+ }
+ 
+-get_lan_hosts() {
++get_lan_macs() {
+ 	uci_bool_by_name $1 enable && \
+ 		echo "$(uci_get_by_name $1 type),$(uci_get_by_name $1 macaddr)"
+ }
+ 
++get_lan_hosts() {
++	uci_bool_by_name $1 enable && \
++		echo "$(uci_get_by_name $1 type),$(uci_get_by_name $1 host)"
++}
++
+ get_plugin_config() {
+ 	local plugin=$(uci_get_by_name $1 plugin)
+ 	local plugin_opts=$(uci_get_by_name $1 plugin_opts)
+@@ -116,7 +121,8 @@ start_rules() {
+ 		-w "$(uci_get_by_type access_control wan_fw_ips)" \
+ 		-I "$(uci_get_by_type access_control lan_ifaces)" \
+ 		-d "$(uci_get_by_type access_control lan_target)" \
+-		-a "$(config_foreach get_lan_hosts lan_hosts)" \
++		-a "$(config_foreach get_lan_macs lan_hosts)" \
++		-A "$(config_foreach get_lan_hosts lan_hosts)" \
+ 		-e "$(uci_get_by_type access_control ipt_ext)" \
+ 		$(get_arg_out) $(get_arg_udp)
+ }
+diff --git a/files/root/usr/bin/ss-rules b/files/root/usr/bin/ss-rules
+index 09c5284..254aa62 100644
+--- a/files/root/usr/bin/ss-rules
++++ b/files/root/usr/bin/ss-rules
+@@ -24,6 +24,8 @@ usage() {
+ 		    -d <target>             the default target of lan access control
+ 		    -a <lan_hosts>          mac addr of access control, need a prefix to
+ 		                            define proxy type
++		    -A <lan_hosts>          lan ip of access control, need a prefix to
++		                            define proxy type
+ 		    -e <extra_args>         extra arguments for iptables
+ 		    -o                      apply the rules to the OUTPUT chain
+ 		    -O                      apply the global rules to the OUTPUT chain
+@@ -83,6 +85,7 @@ ipt_nat() {
+ 		$ipt -A SS_SPEC_WAN_DG -m set --match-set ss_spec_dst_sp dst -j RETURN
+ 		$ipt -A SS_SPEC_WAN_DG -p tcp $EXT_ARGS -j $OUTPUT
+ 		$ipt -I OUTPUT 1 -p tcp -j SS_SPEC_WAN_DG
++		gen_lan_host_output_acl
+ 	fi
+ 	return $?
+ }
+@@ -101,6 +104,26 @@ ipt_mangle() {
+ 	return $?
+ }
+ 
++gen_lan_host_output_acl() {
++	ipt="iptables -t nat"
++	for host in $LAN_HOSTS; do
++		case "${host:0:1}" in
++			b|B)
++				src_mark_bp=`echo ${host:2} | awk -F "." '{printf ("0x%02x", $1)} {printf ("%02x", $2)} {printf ("%02x", $3)} {printf ("%02x\n", $4)}'`
++				$ipt -I SS_SPEC_WAN_DG -m mark --mark $src_mark_bp -j RETURN
++				;;
++			g|G)
++				src_mark_fw=`echo ${host:2} | awk -F "." '{printf ("0x%02x", $1)} {printf ("%02x", $2)} {printf ("%02x", $3)} {printf ("%02x\n", $4)}'`
++				$ipt -I SS_SPEC_WAN_DG -m mark --mark $src_mark_fw -j SS_SPEC_WAN_FW
++				;;
++			n|N)
++				src_mark_ac=`echo ${host:2} | awk -F "." '{printf ("0x%02x", $1)} {printf ("%02x", $2)} {printf ("%02x", $3)} {printf ("%02x\n", $4)}'`
++				$ipt -I SS_SPEC_WAN_DG -m mark --mark $src_mark_fw -j SS_SPEC_WAN_AC
++				;;
++		esac
++	done
++}
++
+ export_ipt_rules() {
+ 	[ -n "$FWI" ] || return 0
+ 	cat <<-CAT >>$FWI
+@@ -114,7 +137,7 @@ CAT
+ }
+ 
+ gen_lan_host_ipset_entry() {
+-	for host in $LAN_HOSTS; do
++	for host in $LAN_MACS; do
+ 		case "${host:0:1}" in
+ 			b|B)
+ 				echo add ss_spec_src_bp ${host:2}
+@@ -178,13 +201,20 @@ EOF
+ }
+ 
+ gen_prerouting_rules() {
+-	[ -z "$IFNAMES" ] && echo -I PREROUTING 1 -p $1 -j SS_SPEC_LAN_DG
++	KP_INDEX=`iptables -t nat -L PREROUTING|tail -n +3|sed -n -e '/^KOOLPROXY/='`
++	if [ -n "$KP_INDEX" ]; then
++		let KP_INDEX+=1
++	else
++		let KP_INDEX=1
++	fi
++
++	[ -z "$IFNAMES" ] && echo -I PREROUTING $KP_INDEX -p $1 -j SS_SPEC_LAN_DG
+ 	for ifname in $IFNAMES; do
+-		echo -I PREROUTING 1 -i $ifname -p $1 -j SS_SPEC_LAN_DG
++		echo -I PREROUTING $KP_INDEX -i $ifname -p $1 -j SS_SPEC_LAN_DG
+ 	done
+ }
+ 
+-while getopts ":s:l:S:L:B:b:W:w:I:d:a:e:oOuUfh" arg; do
++while getopts ":s:l:S:L:B:b:W:w:I:d:a:A:e:oOuUfh" arg; do
+ 	case "$arg" in
+ 		s)
+ 			server=$(for ip in $OPTARG; do echo $ip; done)
+@@ -217,6 +247,9 @@ while getopts ":s:l:S:L:B:b:W:w:I:d:a:e:oOuUfh" arg; do
+ 			LAN_TARGET=$OPTARG
+ 			;;
+ 		a)
++			LAN_MACS=$OPTARG
++			;;
++		A)
+ 			LAN_HOSTS=$OPTARG
+ 			;;
+ 		e)
+diff --git a/files/root/usr/bin/ss-rules-without-ipset b/files/root/usr/bin/ss-rules-without-ipset
+index 943623e..e1b1808 100644
+--- a/files/root/usr/bin/ss-rules-without-ipset
++++ b/files/root/usr/bin/ss-rules-without-ipset
+@@ -26,6 +26,8 @@ usage() {
+ 		    -d <target>             the default target of lan access control
+ 		    -a <lan_hosts>          mac addr of access control, need a prefix to
+ 		                            define proxy type
++		    -A <lan_hosts>          lan ip of access control, need a prefix to
++		                            define proxy type
+ 		    -e <extra_args>         extra arguments for iptables
+ 		    -o                      apply the rules to the OUTPUT chain
+ 		    -O                      apply the global rules to the OUTPUT chain
+@@ -68,6 +70,7 @@ ipt_nat() {
+ 		-I OUTPUT 1 -p tcp -j SS_SPEC_WAN_DG
+ 		COMMIT
+ EOF
++		gen_lan_host_output_acl
+ 	fi
+ 	return $?
+ }
+@@ -86,6 +89,26 @@ ipt_mangle() {
+ 	return $?
+ }
+ 
++gen_lan_host_output_acl() {
++	ipt="iptables -t nat"
++	for host in $LAN_HOSTS; do
++		case "${host:0:1}" in
++			b|B)
++				src_mark_bp=`echo ${host:2} | awk -F "." '{printf ("0x%02x", $1)} {printf ("%02x", $2)} {printf ("%02x", $3)} {printf ("%02x\n", $4)}'`
++				$ipt -I SS_SPEC_WAN_DG -m mark --mark $src_mark_bp -j RETURN
++				;;
++			g|G)
++				src_mark_fw=`echo ${host:2} | awk -F "." '{printf ("0x%02x", $1)} {printf ("%02x", $2)} {printf ("%02x", $3)} {printf ("%02x\n", $4)}'`
++				$ipt -I SS_SPEC_WAN_DG -m mark --mark $src_mark_fw -j SS_SPEC_WAN_FW
++				;;
++			n|N)
++				src_mark_ac=`echo ${host:2} | awk -F "." '{printf ("0x%02x", $1)} {printf ("%02x", $2)} {printf ("%02x", $3)} {printf ("%02x\n", $4)}'`
++				$ipt -I SS_SPEC_WAN_DG -m mark --mark $src_mark_ac -j SS_SPEC_WAN_AC
++				;;
++		esac
++	done
++}
++
+ export_ipt_rules() {
+ 	[ -n "$FWI" ] || return 0
+ 	cat <<-CAT >>$FWI
+@@ -99,7 +122,7 @@ CAT
+ }
+ 
+ gen_lan_host_ipt_entry() {
+-	for host in $LAN_HOSTS; do
++	for host in $LAN_MACS; do
+ 		case "${host:0:1}" in
+ 			b|B)
+ 				echo "1 -m mac --mac-source ${host:2} -j RETURN"
+@@ -163,13 +186,20 @@ EOF
+ }
+ 
+ gen_prerouting_rules() {
+-	[ -z "$IFNAMES" ] && echo -I PREROUTING 1 -p $1 -j SS_SPEC_LAN_DG
++	KP_INDEX=`iptables -t nat -L PREROUTING|tail -n +3|sed -n -e '/^KOOLPROXY/='`
++	if [ -n "$KP_INDEX" ]; then
++		let KP_INDEX+=1
++	else
++		let KP_INDEX=1
++	fi
++
++	[ -z "$IFNAMES" ] && echo -I PREROUTING $KP_INDEX -p $1 -j SS_SPEC_LAN_DG
+ 	for ifname in $IFNAMES; do
+-		echo -I PREROUTING 1 -i $ifname -p $1 -j SS_SPEC_LAN_DG
++		echo -I PREROUTING $KP_INDEX -i $ifname -p $1 -j SS_SPEC_LAN_DG
+ 	done
+ }
+ 
+-while getopts ":s:l:S:L:B:b:W:w:I:d:a:e:oOuUfh" arg; do
++while getopts ":s:l:S:L:B:b:W:w:I:d:a:A:e:oOuUfh" arg; do
+ 	case "$arg" in
+ 		s)
+ 			server=$(for ip in $OPTARG; do echo $ip; done)
+@@ -202,6 +232,9 @@ while getopts ":s:l:S:L:B:b:W:w:I:d:a:e:oOuUfh" arg; do
+ 			LAN_TARGET=$OPTARG
+ 			;;
+ 		a)
++			LAN_MACS=$OPTARG
++			;;
++		A)
+ 			LAN_HOSTS=$OPTARG
+ 			;;
+ 		e)

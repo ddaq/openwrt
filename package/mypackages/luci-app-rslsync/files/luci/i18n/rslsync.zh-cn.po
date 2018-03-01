@@ -1,0 +1,25 @@
+msgid ""
+msgstr ""
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "<strong><font color=\"green\">Resilio Sync is Running</font></strong>"
+msgstr "<strong><font color=\"green\">Resilio Sync 正在运行</font></strong>"
+
+msgid "<strong><font color=\"red\">Resilio Sync is Not Running</font></strong>"
+msgstr "<strong><font color=\"red\">Resilio Sync 未运行</font></strong>"
+
+msgid "Basic Setting"
+msgstr "基本配置"
+
+msgid "Enable"
+msgstr "启用"
+
+msgid "Resilio Sync Web Page"
+msgstr "Resilio Sync 配置页面"
+
+msgid "Config File"
+msgstr "配置文件"

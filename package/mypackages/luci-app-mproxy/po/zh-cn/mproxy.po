@@ -1,0 +1,31 @@
+msgid ""
+msgstr ""
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "<strong><font color=\"green\">Mproxy is Running</font></strong>"
+msgstr "<strong><font color=\"green\">Mproxy 正在运行</font></strong>"
+
+msgid "<strong><font color=\"red\">Mproxy is Not Running</font></strong>"
+msgstr "<strong><font color=\"red\">Mproxy 未运行</font></strong>"
+
+msgid "Mproxy Server"
+msgstr "Mproxy 代理服务器"
+
+msgid "Enable"
+msgstr "启用"
+
+msgid "Local Port"
+msgstr "本地端口"
+
+msgid "Remote IP"
+msgstr "远端地址"
+
+msgid "Remote Port"
+msgstr "远端端口"
+
+msgid "Allow Access From WAN"
+msgstr "允许WAN口访问"

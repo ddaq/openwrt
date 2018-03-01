@@ -1,0 +1,38 @@
+#!/bin/sh /etc/rc.common
+
+START=93
+STOP=15
+CONFIG=chnroute
+PROG=/usr/sbin/chnroute
+
+get_config() {
+	config_get_bool ENABLED $1 enabled 0
+}
+
+add_cru() {
+	WEEK_DAY=$(uci get chnroute.config.day_update)
+	#DAY_HOUR=$(uci get chnroute.config.hour_update)
+	DAY_HOUR=4
+	wirtecron=$(cat /etc/crontabs/root | grep "30 $DAY_HOUR * * $WEEK_DAY" | grep chnroute)
+	if [ -z "$wirtecron" ];then
+		sed -i '/chnroute/d' /etc/crontabs/root >/dev/null 2>&1
+		echo "30 $DAY_HOUR * * $WEEK_DAY $PROG" >> /etc/crontabs/root 
+	fi
+}
+
+del_cron() {
+	sed -i '/chnroute/d' /etc/crontabs/root >/dev/null 2>&1
+}
+
+start() {
+	config_load $CONFIG
+	config_foreach get_config $CONFIG
+	[ $ENABLED -ne 1 ] && exit 0
+
+	add_cru
+}
+
+stop() {
+	del_cron
+}
+

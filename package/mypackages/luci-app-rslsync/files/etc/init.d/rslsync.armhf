@@ -1,0 +1,75 @@
+#!/bin/sh /etc/rc.common
+# Copyright (c) 2011-2015 OpenWrt.org
+
+START=90
+STOP=15
+LOG=/var/log/rslsync.log
+CRON_FILE=/etc/crontabs/root
+
+add_cron()
+{
+	wirtecron=$(cat /etc/crontabs/root | grep rslsync)
+	if [ -z "$wirtecron" ]; then
+		sed -i '/rslsync.log/d' $CRON_FILE
+		echo '0 3 * * * > /var/log/rslsync.log 2>&1' >> $CRON_FILE
+	fi
+}
+
+del_cron()
+{
+	sed -i '/rslsync.log/d' $CRON_FILE
+}
+
+start() {
+	if [ ! -f /lib/ld-linux-armhf.so.3 ]; then
+		libc=$(find /lib -name "libc.so*" -type f)
+		if [ -n "$libc" ];then
+			dir=$(dirname $libc)
+			libc=$(basename $libc)
+
+			cd $dir
+			ln -s $libc ld-linux-armhf.so.3
+			cd - > /dev/null
+		fi
+	fi
+
+	if [ ! -f /lib/libcrypt.so.1 ] && [ ! -f /usr/lib/libcrypt.so.1 ]; then
+		libcrypto=$(find /usr/lib -name "libcrypto.so*" -type f)
+		if [ -n "$libcrypto" ];then
+			dir=$(dirname $libcrypto)
+			libcrypto=$(basename $libcrypto)
+
+			cd $dir
+			ln -s $libcrypto libcrypt.so.1
+			cd - > /dev/null
+		fi
+	fi
+
+	if [ ! -f "/etc/rslsync.conf" ]; then
+		/usr/bin/rslsync --dump-sample-config > /etc/rslsync.conf
+	fi
+
+	config_load rslsync
+	config_get_bool enable config enable 0
+	[ $enable == 0 ] && exit 0
+
+	if [ -f $LOG ]; then
+		rm -f $LOG
+	fi
+
+	service_start /usr/bin/rslsync --config /etc/rslsync.conf --log $LOG
+	add_cron
+	echo "rslsync has started."
+}
+
+stop() {
+	service_stop /usr/bin/rslsync
+	del_cron
+	echo "rslsync has stopped."
+}
+
+restart() {
+	stop
+	sleep 1
+	start
+}
