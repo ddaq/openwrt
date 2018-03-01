@@ -1,0 +1,3 @@
+config chnroute 'config'
+	option day_update '0'
+	option file '/etc/chnroute.list'

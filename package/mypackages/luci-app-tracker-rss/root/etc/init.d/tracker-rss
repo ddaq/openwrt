@@ -1,0 +1,37 @@
+#!/bin/sh /etc/rc.common
+
+START=93
+STOP=15
+CONFIG=tracker-rss
+PROG=/usr/share/tracker-rss/trackerupdate
+
+config_t_get() {
+	local index=0
+	[ -n "$4" ] && index=$4
+	local ret=$(uci get $CONFIG.@$1[$index].$2 2>/dev/null)
+	echo ${ret:=$3}
+}
+
+add_cron() {
+	time=$(config_t_get global time_update)
+	wirtecron=$(cat /etc/crontabs/root | grep "00 $time * * *" | grep trackerupdate)
+	if [ -z "$wirtecron" ];then
+		sed -i '/trackerupdate/d' /etc/crontabs/root >/dev/null 2>&1
+		echo "0 $time * * * $PROG" >> /etc/crontabs/root 
+	fi
+}
+
+del_cron() {
+	sed -i '/trackerupdate/d' /etc/crontabs/root >/dev/null 2>&1
+}
+
+start() {
+	ENABLED=$(config_t_get global enabled 0)
+	[ $ENABLED -ne 1 ] && exit 0
+
+	add_cron
+}
+
+stop() {
+	del_cron
+}

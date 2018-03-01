@@ -1,0 +1,7 @@
+config domainlist 'config'
+	option time_update '5'
+	option ip '127.0.0.1'
+	option port '5300'
+	option ipset ''
+	option list '0'
+	option mode 'gfwlist'

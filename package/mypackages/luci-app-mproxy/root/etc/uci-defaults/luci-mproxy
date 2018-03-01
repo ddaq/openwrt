@@ -1,0 +1,11 @@
+#!/bin/sh
+
+uci -q batch <<-EOF >/dev/null
+	delete ucitrack.@mproxy[-1]
+	add ucitrack mproxy
+	set ucitrack.@mproxy[-1].init=mproxy
+	commit ucitrack
+EOF
+
+rm -f /tmp/luci-indexcache
+exit 0

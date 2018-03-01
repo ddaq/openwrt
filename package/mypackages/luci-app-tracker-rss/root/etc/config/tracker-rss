@@ -1,0 +1,14 @@
+config global
+        option enabled '0'
+        option time_update '4'
+
+config rss_lists
+        option name 'aria2'
+        option enabled '0'
+        option tracker_lists 'tracker_best'
+
+config rss_lists
+        option name 'transmission'
+        option enabled '0'
+        option tracker_lists 'tracker_best'
+

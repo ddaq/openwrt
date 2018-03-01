@@ -1,0 +1,48 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+CONFIG=domainlist
+
+GFWLIST_FILE=/etc/domainlist/gfwlist.conf
+USER_GFWLIST_FILE=/usr/share/domainlist/user-gfwlist.txt
+
+CHINALIST_FILE=/etc/domainlist/chinalist.conf
+USER_CHINALIST_FILE=/usr/share/domainlist/user-chinalist.txt
+
+get_config()
+{
+	config_get DNS_IP $1 ip
+	config_get DNS_PORT $1 port
+	config_get IPSET_NAME $1 ipset
+	config_get DOMAIN_MODE $1 mode
+}
+
+process()
+{
+	config_load $CONFIG
+	config_foreach get_config $CONFIG
+
+	if [ ! -d "/etc/domainlist" ]; then
+		mkdir /etc/domainlist
+	fi
+
+	if [ "$DOMAIN_MODE" == "gfwlist" ]; then
+		if [ -z "$IPSET_NAME" ]; then
+			/usr/sbin/gfwlist -i -d $DNS_IP -p $DNS_PORT --extra-domain-file $USER_GFWLIST_FILE -o $GFWLIST_FILE
+		else
+			/usr/sbin/gfwlist -i -d $DNS_IP -p $DNS_PORT -s $IPSET_NAME --extra-domain-file $USER_GFWLIST_FILE -o $GFWLIST_FILE
+		fi
+	elif [ "$DOMAIN_MODE" == "chinalist" ];then
+		if [ -z "$IPSET_NAME" ]; then
+			/usr/sbin/chinalist -i -d $DNS_IP -p $DNS_PORT --extra-domain-file $USER_CHINALIST_FILE -o $CHINALIST_FILE
+		else
+			/usr/sbin/chinalist -i -d $DNS_IP -p $DNS_PORT -s $IPSET_NAME --extra-domain-file $USER_CHINALIST_FILE -o $CHINALIST_FILE
+		fi
+	fi
+}
+
+process
+/etc/init.d/dnsmasq restart
+
+exit 0
