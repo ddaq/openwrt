@@ -353,3 +353,18 @@ index 61e8432..dca5a17 100644
  };
  
  static struct pernet_operations imq_net_ops = {
+@@ -1268,9 +1268,14 @@ module_exit(imq_exit_module);
+ module_param(numdevs, int, 0);
+ module_param(numqueues, int, 0);
+ module_param(imq_dev_accurate_stats, int, 0);
++module_param(hook_chains, charp, 0);
++module_param(hook_tables, charp, 0);
++
+ MODULE_PARM_DESC(numdevs, "number of IMQ devices (how many imq* devices will be created)");
+ MODULE_PARM_DESC(numqueues, "number of queues per IMQ device");
+ MODULE_PARM_DESC(imq_dev_accurate_stats, "Notify if need the accurate imq device stats");
++MODULE_PARM_DESC(hook_chains, "netfilter chains in which to insert hooks to IMQ");
++MODULE_PARM_DESC(hook_tables, "netfilter tables after which to insert hooks to IMQ");
+ 
+ MODULE_AUTHOR("https://github.com/imq/linuximq");
+ MODULE_DESCRIPTION("Pseudo-driver for the intermediate queue device. See https://github.com/imq/linuximq/wiki for more information.");
