@@ -168,7 +168,6 @@ define Device/turris-omnia
   IMAGE/omnia-medkit-$$(IMAGE_PREFIX)-initramfs.tar.gz := omnia-medkit-initramfs | gzip
   IMAGE_NAME = $$(2)
   DEVICE_DTS := armada-385-turris-omnia
-  UBOOT :=
 endef
 TARGET_DEVICES += turris-omnia
 
