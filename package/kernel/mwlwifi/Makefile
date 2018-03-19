@@ -8,7 +8,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=mwlwifi
-PKG_VERSION:=10.3.4.0.git-2018-03-08
+PKG_VERSION:=10.3.4.0.git-2018-03-19
 PKG_RELEASE=1
 
 PKG_LICENSE:=ISC
@@ -17,8 +17,8 @@ PKG_LICENSE_FILES:=
 PKG_SOURCE_URL:=https://github.com/kaloz/mwlwifi
 #PKG_SOURCE_URL:=https://github.com/marvell-wireless/mwlwifi.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=6b6f9b4af04da93b6af43cb2cc9ab75d1534cc0a
-PKG_MIRROR_HASH:=7ec00b0107ff5d2ffb954a393bd90ca21d40d3b8b98b366cc7e827e48c45d7bc
+PKG_SOURCE_VERSION:=38c2f25d393192abfd4b2a9b883a0b867f15fb51
+PKG_MIRROR_HASH:=e947c0827e849e066dd278453bd62caeadbc83e7574011ca46a5f9a61bd2dc47
 
 PKG_MAINTAINER:=Imre Kaloz <kaloz@openwrt.org>
 PKG_BUILD_PARALLEL:=1
