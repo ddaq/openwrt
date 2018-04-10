@@ -9,9 +9,9 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=ndpi-netfilter
-PKG_VERSION:=c562e17-2.2
+PKG_VERSION:=6f9798b-2.2
 PKG_RELEASE:=1
-PKG_REV:=c562e17
+PKG_REV:=6f9798b
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
