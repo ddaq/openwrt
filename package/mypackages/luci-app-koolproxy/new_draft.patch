@@ -1,0 +1,2237 @@
+diff --git a/Makefile b/Makefile
+index 9c3b0a3..dae8fee 100644
+--- a/Makefile
++++ b/Makefile
+@@ -10,6 +10,8 @@ PKG_LICENSE_FILES:=LICENSE
+ 
+ PKG_BUILD_PARALLEL:=1
+ 
++RSTRIP:=true
++
+ include $(INCLUDE_DIR)/package.mk
+ 
+ define Package/luci-app-koolproxy
+@@ -51,7 +53,6 @@ define Package/luci-app-koolproxy/install
+ 	$(INSTALL_DIR) $(1)/usr/sbin
+ 	$(INSTALL_DIR) $(1)/usr/share/koolproxy
+ 	$(INSTALL_DIR) $(1)/usr/share/koolproxy/data
+-	$(INSTALL_DIR) $(1)/usr/share/koolproxy/data/certs/
+ 	$(INSTALL_DIR) $(1)/usr/share/koolproxy/data/rules/
+ 
+ 	$(INSTALL_BIN) ./files/etc/uci-defaults/luci-koolproxy $(1)/etc/uci-defaults/luci-koolproxy
+@@ -70,8 +71,7 @@ define Package/luci-app-koolproxy/install
+ 	$(INSTALL_DATA) ./files/usr/share/koolproxy/data/user.txt $(1)/usr/share/koolproxy/data/
+ 	$(INSTALL_DATA) ./files/usr/share/koolproxy/data/rules/* $(1)/usr/share/koolproxy/data/rules/
+ 	$(INSTALL_BIN) ./files/usr/share/koolproxy/camanagement $(1)/usr/share/koolproxy/camanagement
+-	$(INSTALL_BIN) ./files/usr/share/koolproxy/firewall.include $(1)/usr/share/koolproxy/firewall.include
+-	$(INSTALL_BIN) ./files/usr/share/koolproxy/koolproxyupdate $(1)/usr/share/koolproxy/koolproxyupdate
++	$(INSTALL_BIN) ./files/usr/share/koolproxy/kpupdate $(1)/usr/share/koolproxy/kpupdate
+ 	$(INSTALL_DATA) ./files/usr/share/koolproxy/adblock.conf $(1)/usr/share/koolproxy/adblock.conf
+ 	$(INSTALL_DATA) ./files/usr/share/koolproxy/dnsmasq.adblock $(1)/usr/share/koolproxy/dnsmasq.adblock
+ ifeq ($(ARCH),mipsel)
+diff --git a/files/etc/adblocklist/adblock b/files/etc/adblocklist/adblock
+index 7a73fa6..4f021a3 100644
+--- a/files/etc/adblocklist/adblock
++++ b/files/etc/adblocklist/adblock
+@@ -123,7 +123,441 @@ qidian.com
+ uuu9.com
+ suppig.net
+ ali213.net
++cnbeta.com
++mydrivers.com
+ tanx.com
+ mp4ba.com
+-mydrivers.com
+-cnbeta.com
+\ No newline at end of file
++.a.baiy.net
++.a.collective-media.net
++.a.itiexue.net
++.a.kickass.to
++.a.shamla.net
++.a.xlpu.cc
++.aavideo.xyz
++.action.data.cp61.ott.cibntv.net
++.ad-apac.doubleclick.net
++.ad.adfurikun.jp
++.ad.csdn.net
++.ad.doubleclick.net
++.ad.ettoday.net
++.ad.fglighting.net
++.ad.hefei.cc
++.ad.jp.doubleclick.net
++.ad.leadboltads.net
++.ad.leadboltmobile.net
++.ad.qingting.fm
++.ad.yixin.im
++.ad7.tagphi.net
++.adbma.adk2.co
++.adclick.g.doubleclick.net
++.adimg.cqnews.net
++.adimg.daumcdn.net
++.adimgs.xici.net
++.adinf.cp11.ott.cibntv.net
++.adm.zbinfo.net
++.admaster.mobi
++.admgr.qingting.fm
++.admicro1.vcmedia.vn
++.admicro4.vcmedia.vn
++.admicro5.vcmedia.vn
++.admicro6.vcmedia.vn
++.admin.louxia.org
++.adplexmedia.adk2.co
++.ads.csdn.net
++.ads.doublemax.net
++.ads.mp.mydas.mobi
++.ads.mydas.mobi
++.ads.pro-market.net
++.ads.trafficjunky.net
++.ads.wasu.tv
++.ads2.opensubtitles.org
++.adstat.cp11.ott.cibntv.net
++.adsystem.wasu.tv
++.adv.fjtv.net
++.adwasu.wasu.tv
++.ag.nukefans.net
++.agn.aty.cp45.ott.cibntv.net
++.al.za5.net
++.aladdin.genieesspv.jp
++.alog.umeng.co
++.amiok.org
++.ams.51junpin.net
++.analytics.ad.daum.net
++.analytics.ws.126.net
++.android.push.126.net
++.androidsdk.ads.mp.mydas.mobi
++.aos.gw.youmi.net
++.aos.prf.hn
++.aos.wall.youmi.net
++.api.adfurikun.jp
++.api.adtimaserver.vn
++.api.cupid.ptqy.gitv.tv
++.api.dewmobile.net
++.api.oneyuan.nagezan.net
++.apklog.cp11.ott.cibntv.net
++.app-g.39.net
++.app.50bang.org
++.ark.cp21.ott.cibntv.net
++.ark.letv-epg.wasu.tv
++.as.kejet.net
++.asimgs.cp61.ott.cibntv.net
++.au.umeng.co
++.au.youmi.net
++.aw.kejet.net
++.b.baiy.net
++.b.bst.126.net
++.b.yunfanlm.net
++.banner.img.static.youmi.net
++.bdaz.adsfactor.net
++.beacon.krxd.net
++.bid.g.doubleclick.net
++.bigbos.top
++.biz5.sandai.net
++.bkmcgi.play.cp81.ott.cibntv.net
++.bksdkconfig.play.cp81.ott.cibntv.net
++.brance.play.cp81.ott.cibntv.net
++.bshare.optimix.asia
++.bx.optimix.asia
++.c.ad6media.fr
++.c.mnet-ad.net
++.c03.optimix.asia
++.c1.adform.net
++.c1.popads.net
++.c2.97you.net
++.c2.popads.net
++.c5.97you.net
++.cachenotice.cp11.ott.cibntv.net
++.cc.bigbos.top
++.cc.ccg51.win
++.cc.yfi052.pw
++.ccg51.win
++.cdn.adsfactor.net
++.cdn.clicktale.net
++.cdn.innity.net
++.cdn.media.innity.net
++.cdn1.ettoday.net
++.cdn3.e705.net
++.cdnonead-onead.cdn.hinet.net
++.cdnssl.clicktale.net
++.cf.gdatecube.net
++.cfg.adsmogo.mobi
++.cfg.adsmogo.net
++.cfg.adsmogo.org
++.ck.kejet.net
++.clicklog.moviebox.baofeng.net
++.clicktalecdn.sslcs.cdngc.net
++.clk.gentags.net
++.cloud.zyiis.net
++.cm.fastapi.net
++.cm.g.doubleclick.net
++.cm.gtags.net
++.cmarket.kejet.net
++.cms.gtags.net
++.code2.huimee.net
++.config.baofeng.net
++.contextual.media.net
++.corner.houyi.baofeng.net
++.count.game.pps.tv
++.counter.csdn.net
++.cp.3big.net
++.cp.5jjx.net
++.cp.efo.cc
++.cp.jiajv.net
++.cpc.88rpg.net
++.cus.adsmogo.mobi
++.cus.adsmogo.org
++.cvt.mydas.mobi
++.d.39.net
++.d.pixiv.org
++.d.yoyi.tv
++.d1635hfcvs8ero.cloudfront.net
++.d3al52d8cojds7.cloudfront.net
++.d3f.houyi.baofeng.net
++.daima.jiduan.cc
++.daima.kandu.cc
++.dat.gtags.net
++.dc.cp21.ott.cibntv.net
++.dc.csdn.net
++.dc.letv-epg.wasu.tv
++.dc2.csdn.net
++.de.as.cp61.ott.cibntv.net
++.dex.advg.jp
++.display.ad.daum.net
++.dl-vip.pcfaster.baidu.co.th
++.dl.img80.net
++.dl.xyymall.net
++.dload.qd.qingting.fm
++.dm531.dm530.net
++.dm532.dm530.net
++.dmp.kejet.net
++.dmp.tenmax.io
++.dolphin.ftimg.net
++.down.laomaotao.net
++.down.xiazai2.net
++.down.xiazaiyuan.net
++.downloada.dewmobile.net
++.downloadb.dewmobile.net
++.dp3.play.cp81.ott.cibntv.net
++.dpvc.39.net
++.dr3k6qonw2kee.cloudfront.net
++.dt.39photo.net
++.dz.njq.net
++.e-vcdn.anthill.vn
++.e.e708.net
++.ee.e701.net
++.ex.puata.info
++.f.e703.net
++.f.e719.net
++.f.novanet.vn
++.f2.e703.net
++.float.sandai.net
++.g.ad8.cc
++.g.doubleclick.net
++.g.fastapi.net
++.g.ousns.net
++.game.pps.tv
++.googleads.g.doubleclick.net
++.guess.union2.50bang.org
++.ha.pro-market.net
++.haitaoad.nosdn.127.net
++.i.9le.net
++.i.adfurikun.jp
++.i.bsshw.net
++.i.jiajv.net
++.i.l.inmobicdn.net
++.icon.51.la
++.id1.anreson.net
++.ii.bsshw.net
++.ima.xcyjzs.net
++.images.cp45.ott.cibntv.net
++.img.88rpg.net
++.img.ads.csdn.net
++.img.users.51.la
++.img1.126.net
++.img1.pszyzxh.org
++.img2.126.net
++.imgcdn.xixiwan.net
++.imp-mdsp.avazutracking.net
++.imp.adsmogo.mobi
++.imp.adsmogo.net
++.ipua.adfurikun.jp
++.irs01.net
++.j.microad.net
++.jgl.microad.net
++.jp.as.cp61.ott.cibntv.net
++.jph.itiexue.net
++.js-1.pchome.net
++.js.a3p4.net
++.js.cyad.cc
++.js.mumayi.net
++.js.revsci.net
++.js.users.51.la
++.js1116.anreson.net
++.js1315.anreson.net
++.js1940.anreson.net
++.js2294.anreson.net
++.js3555.hongtaidichan.net
++.js4476.hongtaidichan.net
++.js4775.hongtaidichan.net
++.js883.anreson.net
++.jsc.dt07.net
++.jssd.kb20.cc
++.jump1.pszyzxh.org
++.jump2.pszyzxh.org
++.kawa11.space
++.keydot.net
++.kti.bigbos.top
++.l.fastapi.net
++.lg.logging.admicro.vn
++.lg1.logging.admicro.vn
++.link.jiduan.cc
++.livep.l.cp81.ott.cibntv.net
++.lives.l.cp81.ott.cibntv.net
++.loading.baofeng5.baofeng.net
++.log.adtimaserver.vn
++.log.houyi.baofeng.net
++.log.tiexue.net
++.logger.qingting.fm
++.logic.cpm.cm.sandai.net
++.m.analytics.126.net
++.m.down.sandai.net
++.m.kejet.net
++.mc.yandex.ru
++.mcc.chinauma.net
++.mcgi.play.cp81.ott.cibntv.net
++.media.adtimaserver.vn
++.media.trafficjunky.net
++.mg.dt07.net
++.mid.houyi.baofeng.net
++.mimg.126.net
++.mixer.cupid.ptqy.gitv.tv
++.mlog.search.xiaomi.net
++.mmg.aty.cp45.ott.cibntv.net
++.ms.anreson.net
++.msg.71.am
++.msg.ptqy.gitv.tv
++.msg.video.ptqy.gitv.tv
++.msg2.video.ptqy.gitv.tv
++.msga.71.am
++.msga.ptqy.gitv.tv
++.nclog.mars.baofeng.net
++.news-l.play.cp81.ott.cibntv.net
++.news.766ba.net
++.news.push.126.net
++.nl.rcd.ptqy.gitv.tv
++.oc.umeng.co
++.oki.xcyjzs.net
++.okt.xcyjzs.net
++.onlinetips.baofeng5.baofeng.net
++.outer.anquan.org
++.p-l.play.cp81.ott.cibntv.net
++.p.rhgw.net
++.panel.adtify.pl
++.parser.houyi.baofeng.net
++.pb.bi.gitv.tv
++.pb.ott.hd.cp45.ott.cibntv.net
++.pclog.suishenyun.net
++.pd7-imp.revsci.net
++.phpad.cqnews.net
++.pic.fastapi.net
++.pix04.revsci.net
++.pre.api.tw06.xlmc.sandai.net
++.ps.eyeota.net
++.pt.trafficjunky.net
++.pubads.g.doubleclick.net
++.push.tv.api.3g.cp31.ott.cibntv.net
++.pvlog.moviebox.baofeng.net
++.px.owneriq.net
++.qiye11.ejunshi.net
++.qosp.msg.71.am
++.qr.cp31.ott.cibntv.net
++.quote.51.la
++.r.l.cp31.ott.cibntv.net
++.r.popin.cc
++.r.youmi.net
++.r1.cp31.ott.cibntv.net
++.resolver.msg.xiaomi.net
++.rlog.popin.cc
++.rtb-asiamax.tenmax.io
++.rtb-p.kejet.net
++.s.5jjx.net
++.s.ato.mx
++.s.de123.net
++.s.druu.cc
++.s.eclick.vn
++.s.effectivemeasure.net
++.s.fastapi.net
++.s.gdatecube.net
++.s.qd.qingting.fm
++.s.youmi.net
++.s0.2mdn.net
++.s03.optimix.asia
++.s1.2mdn.net
++.s4.55.la
++.s5.keydot.net
++.sd.kk3g.net
++.sd.mmfile.net
++.sdk.data.cp61.ott.cibntv.net
++.sdk.m.cp31.ott.cibntv.net
++.sdkconfig.play.cp81.ott.cibntv.net
++.securepubads.g.doubleclick.net
++.serve.popads.net
++.servedby.adsfactor.net
++.servicegetbook.net
++.sg-cdn.effectivemeasure.net
++.sh.adingo.jp
++.shzyjbr.wtdtjs.rocks
++.sis.jpush.io
++.sit.gentags.net
++.sjkmio.812920.top
++.snap.snapmobile.asia
++.sp.gmossp-sp.jp
++.spap.adingo.jp.eimg.jp
++.spap.adingo.jp
++.spapi.i-mobile.co.jp
++.spdmg-backend.i-mobile.co.jp
++.spdmg.i-mobile.co.jp
++.ss.subo.me
++.ss2p.uuxs.net
++.ssl-cdn.media.innity.net
++.ssp.tenmax.io
++.stat.cp33.ott.cibntv.net
++.stat.gw.youmi.net
++.stat.pchome.net
++.stat.titan.imgo.tv
++.static.adtimaserver.vn
++.static.anquan.org
++.static.criteo.net
++.static.eclick.vn
++.static.houyi.baofeng.net
++.static.novanet.vn
++.static.snapmobile.asia
++.static.youmi.net
++.stats.g.doubleclick.net
++.store.ptqy.gitv.tv
++.store.tv.api.3g.cp31.ott.cibntv.net
++.super.kdnet.net
++.t-l.play.cp81.ott.cibntv.net
++.t.adcrops.net
++.t.vbxx.net
++.t2.vbxx.net
++.tenmax-static.cacafly.net
++.test.api.xlmc.sandai.net
++.tinydrag.t.cp61.ott.cibntv.net
++.tj.yule8.net
++.tp.sphwq.net
++.track.dmp.youmi.net
++.tw13b093.sandai.net
++.twbill.xyz
++.u.1133.cc
++.ujs.jialiren.net
++.uma.gtags.net
++.union2.50bang.org
++.update.123juzi.net
++.ups.ksmobile.net
++.users.51.la
++.ut.gtags.net
++.util.nphoto.net
++.v.e704.net
++.v.img80.net
++.v.jtxh.net
++.val.atm.cp31.ott.cibntv.net
++.valf.atm.cp31.ott.cibntv.net
++.vip.yoyozz.net
++.vip.yule8.net
++.vipjs.csad.cc
++.vpie.net
++.w.3big.net
++.w.efo.cc
++.w2.3big.net
++.w2.docols.net
++.wazero.online
++.web.51.la
++.web.houyi.baofeng.net
++.web1.51.la
++.web2.51.la
++.wl.houyi.baofeng.net
++.wm.20150.net
++.ws.ksmobile.net
++.ww202.keyyou.net
++.www.51.la
++.www.6604.org
++.www.ads8.cc
++.www.daima123.cc
++.www.i1236.net
++.www.keydot.net
++.www.laomaotao.net
++.www.umeng.co
++.www.yanjiele8.club
++.www.yoyozz.net
++.xs.houyi.baofeng.net
++.y.one.impact-ad.jp
++.yads.c.yimg.jp
++.yads.yahoo.co.jp
++.yiyuan.nagezan.net
++.yoo.yiiyoo.net
++1000fr.net
++acfun.tv
++baofeng.net
++fun.tv
++pps.tv
+diff --git a/files/etc/config/koolproxy b/files/etc/config/koolproxy
+index 95728ef..e86eedd 100644
+--- a/files/etc/config/koolproxy
++++ b/files/etc/config/koolproxy
+@@ -1,6 +1,7 @@
+ 
+ config global
+-	option filter_mode 'global'
++	option koolproxy_mode '1'
++	option koolproxy_acl_default '1'
+ 	option time_update '4'
+ 	option enabled '0'
+ 	option startup_delay '0'
+diff --git a/files/etc/init.d/koolproxy b/files/etc/init.d/koolproxy
+index 7f60aa3..c3d37bd 100755
+--- a/files/etc/init.d/koolproxy
++++ b/files/etc/init.d/koolproxy
+@@ -11,10 +11,10 @@ START=99
+ USE_PROCD=1
+ 
+ CONFIG=koolproxy
+-PROG_PATH=/usr/share/koolproxy
+-DATA_PATH=$PROG_PATH/data
+-RULE_PATH=$DATA_PATH/rules
+-TEMP_PATH=/tmp
++KP_DIR=/usr/share/koolproxy
++TMP_DIR=/tmp
++
++alias echo_date='echo $(date +%Y年%m月%d日\ %X):'
+ 
+ config_n_get() {
+ 	local ret=$(uci get $CONFIG.$1.$2 2>/dev/null)
+@@ -28,15 +28,97 @@ config_t_get() {
+ 	echo ${ret:=$3}
+ }
+ 
+-factor() {
+-	if [ -z "$1" ] || [ -z "$2" ]; then
+-		echo ""
++add_ipset_conf() {
++	if [ "$koolproxy_mode" == "2" ]; then
++		if [ "$koolproxy_host" == "1" ];then
++			echo_date 添加Adblock Plus Host软连接...
++			ln -sf $KP_DIR/dnsmasq.adblock /tmp/dnsmasq.d/dnsmasq.adblock
++		fi
++
++		echo_date 添加黑名单软连接...
++		rm -rf /tmp/dnsmasq.d/adblock.conf
++		ln -sf $KP_DIR/adblock.conf /tmp/dnsmasq.d/adblock.conf
++		dnsmasq_restart=1
++	fi
++}
++
++remove_ipset_conf() {
++	if [ -L "/tmp/dnsmasq.d/koolproxy_ipset.conf" ]; then
++		echo_date 移除黑名单软连接...
++		rm -rf /tmp/dnsmasq.d/koolproxy_ipset.conf
++	fi
++
++	if [ -L "/tmp/dnsmasq.d/dnsmasq.adblock" ]; then
++		echo_date 移除Adblock Plus Host软连接...
++		rm -rf /tmp/dnsmasq.d/dnsmasq.adblock
++	fi
++}
++
++
++restart_dnsmasq() {
++	if [ "$dnsmasq_restart" == "1" ]; then
++		echo_date 重启dnsmasq进程...
++		/etc/init.d/dnsmasq restart > /dev/null 2>&1
++	fi
++}
++
++creat_ipset() {
++	echo_date 创建ipset名单
++	# Load ipset netfilter kernel modules and kernel modules
++	ipset -! create white_kp_list nethash
++	ipset -! create black_koolproxy iphash
++}
++
++add_white_black_ip() {
++	echo_date 添加ipset名单
++	ip_lan="0.0.0.0/8 10.0.0.0/8 100.64.0.0/10 127.0.0.0/8 169.254.0.0/16 172.16.0.0/12 192.168.0.0/16 224.0.0.0/4 240.0.0.0/4"
++	for ip in $ip_lan
++	do
++		ipset -A white_kp_list $ip >/dev/null 2>&1
++
++	done
++	ipset -A black_koolproxy 110.110.110.110 >/dev/null 2>&1
++	sed -e "s/^/add black_koolproxy &/g" /etc/adblocklist/adblockip | awk '{print $0} END{print "COMMIT"}' | ipset -R 2>/dev/null
++}
++
++load_config() {
++	ENABLED=$(config_t_get global enabled 0)
++	[ $ENABLED -ne 1 ] && return 0
++	koolproxy_mode=$(config_t_get global koolproxy_mode 1)
++	koolproxy_host=$(config_t_get global koolproxy_host 0)
++	koolproxy_acl_default=$(config_t_get global koolproxy_acl_default 1)
++	config_load $CONFIG
++	return 1
++}
++
++__load_lan_acl() {
++	local mac
++	local ip
++	local mode
++	config_get mac $1 mac
++	config_get ipaddr $1 ipaddr
++	config_get mode $1 proxy_mode
++	[ -n "$ipaddr" ] && [ -z "$mac" ] && echo_date 加载ACL规则：【$ipaddr】模式为：$(get_mode_name $proxy_mode)
++	[ -z "$ipaddr" ] && [ -n "$mac" ] && echo_date 加载ACL规则：【$mac】模式为：$(get_mode_name $proxy_mode)
++	[ -n "$ipaddr" ] && [ -n "$mac" ] && echo_date 加载ACL规则：【$ipaddr】【$mac】模式为：$(get_mode_name $proxy_mode)
++	#echo iptables -t nat -A KOOLPROXY $(factor $ipaddr "-s") $(factor $mac "-m mac --mac-source") -p tcp $(get_jump_mode $proxy_mode) $(get_action_chain $proxy_mode)
++	iptables -t nat -A KOOLPROXY $(factor $ipaddr "-s") $(factor $mac "-m mac --mac-source") -p tcp $(get_jump_mode $proxy_mode) $(get_action_chain $proxy_mode)
++
++	acl_nu=`expr $acl_nu + 1`
++}
++
++lan_acess_control() {
++	acl_nu=0
++	[ -z "$koolproxy_acl_default" ] && koolproxy_acl_default=1
++	config_foreach __load_lan_acl acl_rule
++	if [ $acl_nu -ne 0 ]; then
++		echo_date 加载ACL规则：其余主机模式为：$(get_mode_name $koolproxy_acl_default)
+ 	else
+-		echo "$2 $1"
++		echo_date 加载ACL规则：所有模式为：$(get_mode_name $koolproxy_acl_default)
+ 	fi
+ }
+ 
+-load_exrule() {
++__load_exrule() {
+ 	local file
+ 	local exrule
+ 	local enable
+@@ -45,7 +127,7 @@ load_exrule() {
+ 	config_get enable $1 load
+ 	if [ -n "$exrule" ]; then
+ 		if [ $enable -ne 1 ]; then
+-			[ -n "$file" ] && [ -f $RULE_PATH/$file ] && rm -f $RULE_PATH/$file
++			[ -n "$file" ] && [ -f $KP_DIR/data/rule/$file ] && rm -f $KP_DIR/data/rule/$file
+ 			uci set koolproxy.$1.time=""
+ 			uci commit koolproxy
+ 			return
+@@ -57,161 +139,136 @@ load_exrule() {
+ 			uci commit koolproxy
+ 		fi
+ 
+-		if [ ! -f $RULE_PATH/$file ]; then
+-			wget-ssl --quiet --timeout=5 --no-check-certificate $exrule -O $TEMP_PATH/$file
++		if [ ! -f $KP_DIR/data/rule/$file ]; then
++			wget-ssl --quiet --timeout=5 --no-check-certificate $exrule -O $TMP_DIR/$file
+ 			if [ "$?" == "0" ]; then
+ 				uci set koolproxy.$1.time="`date +%Y-%m-%d" "%H:%M`"
+ 				uci commit koolproxy
+-				mv $TEMP_PATH/$file $RULE_PATH/$file
++				mv $TMP_DIR/$file $KP_DIR/data/rule/$file
+ 			else
+ 				echo "koolproxy download rule $file failed!"
+-				[ -f $TEMP_PATH/$file ] && rm -f $TEMP_PATH/$file
++				[ -f $TMP_DIR/$file ] && rm -f $TMP_DIR/$file
+ 			fi
+ 		fi
+-		cat $RULE_PATH/$file >>$RULE_PATH/user.txt
++		cat $KP_DIR/data/rule/$file >>$KP_DIR/data/rule/user.txt
+ 	fi
+ }
+ 
+-load_acl() {
+-	local mac
+-	local ip
+-	local mode
+-	config_get mac $1 mac
+-	config_get ip $1 ipaddr
+-	config_get mode $1 filter_mode
+-	if [ -n "$mode" ] && [ -n "$ip" ] || [ -n "$mac" ]; then
+-		iptables -t nat -A KOOLPROXY $(factor $ip "-s") $(factor $mac "-m mac --mac-source") -$(get_jump_mode $mode) $(get_action_chain $mode)
+-	fi
++gen_user_rule() {
++	cp $KP_DIR/data/user.txt $KP_DIR/data/rule/user.txt
++	config_foreach __load_exrule rss_rule
+ }
+ 
+-iptables_ext() {
+-	iptables -t nat -C $2 $3 2>/dev/null
+-	local ret=$?
+-	if [ "$ret" -ne 0 ];then
+-		iptables -t nat -$1 $2 $3 2>/dev/null
+-	fi
+-}
+-
+-load_config() {
+-	ENABLED=$(config_t_get global enabled 0)
+-	[ $ENABLED -ne 1 ] && return 0
+-	VIDEO_MODE=$(config_t_get global video_mode 0)
+-	GLOBAL_MODE=$(config_t_get global filter_mode adblock)
+-	config_load $CONFIG
+-	return 1
+-}
+-
+-add_dnsmasq() {
+-	adblockenable=$(config_t_get global adblock 0)
+-	if [ ! -f "/tmp/dnsmasq.d/dnsmasq.adblock" -a "$adblockenable" == "1" ];then
+-		ln -s /usr/share/koolproxy/dnsmasq.adblock /tmp/dnsmasq.d/dnsmasq.adblock
+-	fi
+-	if [ ! -f "/tmp/dnsmasq.d/adblock.conf" ];then
+-		ln -s /usr/share/koolproxy/adblock.conf /tmp/dnsmasq.d/adblock.conf
+-		/etc/init.d/dnsmasq restart
+-	fi
+-}
+-
+-detect_cert(){
+-	if [ ! -f $DATA_PATH/private/ca.key.pem ]; then
+-		echo_date 检测到首次运行，开始生成koolproxy证书，用于https过滤！
+-		cd $DATA_PATH && sh gen_ca.sh
+-	fi
++get_mode_name() {
++	case "$1" in
++		0)
++			echo "不过滤"
++		;;
++		1)
++			echo "http模式"
++		;;
++		2)
++			echo "http + https"
++		;;
++		3)
++			echo "full port"
++		;;
++	esac
+ }
+ 
+-stop_dnsmasq() {
+-	adenable=$(config_t_get global enabled)
+-	if [ "$adenable" == "0" ];then
+-		sed -i '/koolproxyupdate/d' /etc/crontabs/root >/dev/null 2>&1
+-		rm /tmp/dnsmasq.d/adblock.conf
+-		/etc/init.d/dnsmasq restart
+-	fi
++get_jump_mode() {
++	case "$1" in
++		0)
++			echo "-j"
++		;;
++		*)
++			echo "-g"
++		;;
++	esac
+ }
+ 
+ get_action_chain() {
+ 	case "$1" in
+-		disable)
++		0)
+ 			echo "RETURN"
+-			;;
+-		global)
+-			echo "KOOLPROXY_GLO"
+-			;;
+-		adblock)
+-			echo "KOOLPROXY_ADB"
+-			add_dnsmasq
+-			;;
+-		ahttps)
+-			echo "KOOLPROXY_HTTPS_ADB"
+-			;;
+-		ghttps)
+-			echo "KOOLPROXY_HTTPS_GLO"
+-			;;
++		;;
++		1)
++			echo "KP_HTTP"
++		;;
++		2)
++			echo "KP_HTTPS"
++		;;
++		3)
++			echo "KP_ALL_PORT"
++		;;
+ 	esac
+ }
+ 
+-get_jump_mode() {
+-	case "$1" in
+-		disable)
+-			echo "j"
+-			;;
+-		*https)
+-			echo "j"
+-			;;
+-		*)
+-			echo "g"
+-			;;
+-	esac
++factor() {
++	if [ -z "$1" ] || [ -z "$2" ]; then
++		echo ""
++	else
++		echo "$2 $1"
++	fi
+ }
+ 
+-add_koolproxy_cru() {
++load_nat() {
++	echo_date 加载nat规则！
++	#----------------------BASIC RULES---------------------
++	echo_date 写入iptables规则到nat表中...
++	# 创建KOOLPROXY nat rule
++	iptables -t nat -N KOOLPROXY
++	# 局域网地址不走KP
++	iptables -t nat -A KOOLPROXY -m set --match-set white_kp_list dst -j RETURN
++	#  生成对应CHAIN
++	iptables -t nat -N KP_HTTP
++	iptables -t nat -A KP_HTTP -p tcp -m multiport --dport 80 -j REDIRECT --to-ports 3000
++	iptables -t nat -N KP_HTTPS
++	iptables -t nat -A KP_HTTPS -p tcp -m multiport --dport 80,443 -j REDIRECT --to-ports 3000
++	iptables -t nat -N KP_ALL_PORT
++	iptables -t nat -A KP_ALL_PORT -p tcp -j REDIRECT --to-ports 3000
++	# 局域网控制
++	lan_acess_control
++	# 剩余流量转发到缺省规则定义的链中
++	iptables -t nat -A KOOLPROXY -p tcp -j $(get_action_chain $koolproxy_acl_default)
++	# 重定所有流量到 KOOLPROXY
++	# 全局模式和视频模式
++	[ "$koolproxy_mode" == "1" ] || [ "$koolproxy_mode" == "3" ] && iptables -t nat -I PREROUTING 1 -p tcp -j KOOLPROXY
++	# ipset 黑名单模式
++	[ "$koolproxy_mode" == "2" ] && iptables -t nat -I PREROUTING 1 -p tcp -m set --match-set black_koolproxy dst -j KOOLPROXY
++}
++
++add_cru() {
+ 	time=$(config_t_get global time_update)
+-	wirtecron=$(cat /etc/crontabs/root | grep "00 $time * * *" | grep koolproxy)
++	wirtecron=$(cat /etc/crontabs/root | grep "00 $time * * *" | grep kpupdate)
+ 	if [ -z "$wirtecron" ];then
+-		sed -i '/koolproxyupdate/d' /etc/crontabs/root >/dev/null 2>&1
+-		echo "0 $time * * * /usr/share/koolproxy/koolproxyupdate" >> /etc/crontabs/root 
++		sed -i '/kpupdate/d' /etc/crontabs/root >/dev/null 2>&1
++		echo "0 $time * * * /usr/share/koolproxy/kpupdate" >> /etc/crontabs/root 
+ 	fi
+ }
+ 
+-add_rule() {
+-	iptables -t nat -N KOOLPROXY 2>/dev/null
+-	iptables -t nat -N KOOLPROXY_GLO 2>/dev/null
+-	iptables -t nat -N KOOLPROXY_ADB 2>/dev/null
+-	iptables -t nat -N KOOLPROXY_HTTPS_GLO 2>/dev/null
+-	iptables -t nat -N KOOLPROXY_HTTPS_ADB 2>/dev/null
+-	iptables -t nat -I PREROUTING 1 -p tcp -j KOOLPROXY
+-	#创建所需的ipset
+-	IPSET_ADB="adblock"
+-	ipset -! create $IPSET_ADB nethash && ipset -! add $IPSET_ADB 110.110.110.110 2>/dev/null
+-	sed -e "s/^/add $IPSET_ADB &/g" /etc/adblocklist/adblockip | awk '{print $0} END{print "COMMIT"}' | ipset -R 2>/dev/null
+-	#生成代理规则
+-	#  忽略特殊IP段
+-	iptables_ext A KOOLPROXY "-d 0.0.0.0/8 -j RETURN"
+-	iptables_ext A KOOLPROXY "-d 10.0.0.0/8 -j RETURN"
+-	iptables_ext A KOOLPROXY "-d 127.0.0.0/8 -j RETURN"
+-	iptables_ext A KOOLPROXY "-d 169.254.0.0/16 -j RETURN"
+-	iptables_ext A KOOLPROXY "-d 172.16.0.0/12 -j RETURN"
+-	iptables_ext A KOOLPROXY "-d 192.168.0.0/16 -j RETURN"
+-	iptables_ext A KOOLPROXY "-d 224.0.0.0/4 -j RETURN"
+-	iptables_ext A KOOLPROXY "-d 240.0.0.0/4 -j RETURN"
+-	#  生成对应CHAIN
+-	LOCAL_PORT=3000
+-	iptables_ext A KOOLPROXY_GLO "-p tcp --dport 80 -j REDIRECT --to $LOCAL_PORT"
+-	iptables_ext A KOOLPROXY_ADB "-p tcp --dport 80 -m set --match-set $IPSET_ADB dst -j REDIRECT --to $LOCAL_PORT"
+-	iptables_ext A KOOLPROXY_HTTPS_GLO "-p tcp --dport 443 -j REDIRECT --to $LOCAL_PORT"
+-	iptables_ext A KOOLPROXY_HTTPS_ADB "-p tcp --dport 443 -m set --match-set $IPSET_ADB dst -j REDIRECT --to $LOCAL_PORT"
+-	#加载ACLS
+-	config_foreach load_acl acl_rule
+-	#加载默认代理模式
+-	iptables -t nat -A KOOLPROXY -p tcp -j $(get_action_chain $GLOBAL_MODE)
++del_cru() {
++	sed -i '/kpupdate/d' /etc/crontabs/root >/dev/null 2>&1
++}
++
++detect_cert(){
++	if [ ! -f $KP_DIR/data/private/ca.key.pem ]; then
++		echo_date 检测到首次运行，开始生成koolproxy证书，用于https过滤！
++		cd $KP_DIR/data && sh gen_ca.sh
++	fi
+ }
+ 
+-del_rule() {
+-	iptables -t nat -D PREROUTING -p tcp -j KOOLPROXY 2>/dev/null
+-	iptables -t nat -F KOOLPROXY 2>/dev/null && iptables -t nat -X KOOLPROXY 2>/dev/null
+-	iptables -t nat -F KOOLPROXY_GLO 2>/dev/null && iptables -t nat -X KOOLPROXY_GLO 2>/dev/null
+-	iptables -t nat -F KOOLPROXY_ADB 2>/dev/null && iptables -t nat -X KOOLPROXY_ADB 2>/dev/null
+-	iptables -t nat -F KOOLPROXY_HTTPS_ADB 2>/dev/null && iptables -t nat -X KOOLPROXY_HTTPS_ADB 2>/dev/null
+-	iptables -t nat -F KOOLPROXY_HTTPS_GLO 2>/dev/null && iptables -t nat -X KOOLPROXY_HTTPS_GLO 2>/dev/null
++flush_nat() {
++	echo_date 移除nat规则...
++	cd $TMP_DIR
++	iptables -t nat -S | grep -E "KOOLPROXY|KP_HTTP|KP_HTTPS|KP_ALL_PORT" | sed 's/-A/iptables -t nat -D/g'|sed 1,4d > clean.sh && chmod 777 clean.sh && ./clean.sh
++	[ -f $TMP_DIR/clean.sh ] && rm -f $TMP_DIR/clean.sh
++	iptables -t nat -X KOOLPROXY > /dev/null 2>&1
++	iptables -t nat -X KP_HTTP > /dev/null 2>&1
++	iptables -t nat -X KP_HTTPS > /dev/null 2>&1
++	iptables -t nat -X KP_ALL_PORT > /dev/null 2>&1
++	ipset -F black_koolproxy > /dev/null 2>&1 && ipset -X black_koolproxy > /dev/null 2>&1
++	ipset -F white_kp_list > /dev/null 2>&1 && ipset -X white_kp_list > /dev/null 2>&1
+ }
+ 
+ export_ipt_rules() {
+@@ -238,35 +295,35 @@ pre_start() {
+ 	[ $? -ne 1 ] && return 0
+ 	iptables -t nat -C PREROUTING -p tcp -j KOOLPROXY 2>/dev/null && [ $? -eq 0 ] && return 0;
+ 	detect_cert
+-	#加载用户自定义规则
+-	cp $DATA_PATH/user.txt $RULE_PATH/user.txt
+-	#加载订阅规则
+-	config_foreach load_exrule rss_rule
+-	#/usr/share/koolproxy/koolproxy -d >/dev/null 2>&1 &
+-	add_rule
+-	add_koolproxy_cru
++	add_ipset_conf && restart_dnsmasq
++	creat_ipset
++	add_white_black_ip
++	load_nat
+ 	flush_ipt_rules && export_ipt_rules
++	add_cru
+ 	return 1
+ }
+ 
+ post_stop() {
++	if [ $NO_RESTART_DNSMASQ ]; then
++		remove_ipset_conf
++	else
++		remove_ipset_conf && restart_dnsmasq
++	fi
+ 	flush_ipt_rules
+-	del_rule
+-	ipset -F adblock
+-	ipset -X adblock
+-	rm -f /tmp/dnsmasq.d/dnsmasq.adblock
+-	#kill -9 $(ps|grep '/usr/share/koolproxy/koolproxy'|grep -v 'grep'|awk '{print$1}')
+-	stop_dnsmasq
++	flush_nat
++	del_cru
+ 	return 0
+ }
+ 
+ start_service() {
++	echo_date ================== koolproxy启用 =================
+ 	pre_start
+ 	[ $? -ne 1 ] && exit 0
+ 
+ 	procd_open_instance
+ 	procd_set_param command /usr/share/koolproxy/koolproxy
+-	if [ $VIDEO_MODE -eq 1 ]; then
++	if [ $koolproxy_mode -eq 3 ]; then
+ 		procd_append_param command -e
+ 	fi
+ 	procd_append_param command --mark
+@@ -280,15 +337,19 @@ start_service() {
+ 	procd_close_instance
+ 
+ 	logger "koolproxy has started."
++	echo_date =================================================
+ }
+ 
+ stop_service() {
++	echo_date ================== 关闭 =================
+ 	post_stop
+ 	logger "koolproxy has stopped."
++	echo_date =================================================
+ }
+ 
+ reload_service() {
+ 	logger "koolproxy reload service."
++	NO_RESTART_DNSMASQ=true
+ 	stop
+ 	sleep 1
+ 	start
+@@ -296,6 +357,7 @@ reload_service() {
+ 
+ restart() {
+ 	logger "koolproxy restart service."
++	NO_RESTART_DNSMASQ=true
+ 	stop
+ 	sleep 1
+ 	start
+diff --git a/files/usr/lib/lua/luci/model/cbi/koolproxy/global.lua b/files/usr/lib/lua/luci/model/cbi/koolproxy/global.lua
+index 07d77ec..76dd3ab 100644
+--- a/files/usr/lib/lua/luci/model/cbi/koolproxy/global.lua
++++ b/files/usr/lib/lua/luci/model/cbi/koolproxy/global.lua
+@@ -24,7 +24,6 @@ local function get_status(name)
+ end
+ 
+ o=Map(r,translate("koolproxy"),translate("A powerful advertisement blocker. <br /><font color=\"red\">Adblock Plus Host list + koolproxy Blacklist mode runs without loss of bandwidth due to performance issues.<br /></font>"))
+---o.template="koolproxy/index"
+ t=o:section(TypedSection,"global",translate("Running Status"))
+ t.anonymous=true
+ e=t:option(DummyValue,"_status",translate("Transparent Proxy"))
+@@ -32,16 +31,19 @@ e.value=get_status("koolproxy")
+ t=o:section(TypedSection,"global",translate("Global Setting"))
+ t.anonymous=true
+ t.addremove=false
++
+ t:tab("base",translate("Basic Settings"))
+ t:tab("cert",translate("Certificate Management"))
+ t:tab("weblist",translate("Set Backlist Of Websites"))
+ t:tab("iplist",translate("Set Backlist Of IP"))
+ t:tab("customlist",translate("Set Backlist Of custom"))
+ t:tab("logs",translate("View the logs"))
+-e=t:taboption("base",Flag,"enabled",translate("Enable"))
+-e.default=0
+-e.rmempty=false
+-e=t:taboption("base",Value, "startup_delay", translate("Startup Delay"))
++
++e = t:taboption("base", Flag, "enabled", translate("Enable"))
++e.default = 0
++e.rmempty = false
++
++e = t:taboption("base", Value, "startup_delay", translate("Startup Delay"))
+ e:value(0, translate("Not enabled"))
+ for _, v in ipairs({5, 10, 15, 25, 40}) do
+ 	e:value(v, translate("%u seconds") %{v})
+@@ -49,44 +51,41 @@ end
+ e.datatype = "uinteger"
+ e.default = 0
+ e.rmempty = false
+-e=t:taboption("base",ListValue,"filter_mode",translate('Default')..translate("Filter Mode"))
+-e.default="adblock"
+-e.rmempty=false
+-e:value("disable",translate("No Filter"))
+-e:value("global",translate("Global Filter"))
+-e:value("adblock",translate("AdBlock Filter"))
+-e=t:taboption("base",Flag,"video_mode",translate("视频模式"))
+-e.default=0
+-e.description=translate("只加载视频规则")
+-e=t:taboption("base",Flag,"adblock",translate("Open adblock"))
+-e.default=0
+-e:depends("filter_mode","adblock")
+-e=t:taboption("base",ListValue,"time_update",translate("Timing update rules"))
+-for t=0,23 do
++
++e=t:taboption("base", ListValue, "koolproxy_mode", translate("Filter Mode"))
++e.default = 1
++e.rmempty = false
++e:value(1, translate("全局模式"))
++e:value(2, translate("IPSET模式"))
++e:value(3, translate("视频模式"))
++
++e=t:taboption("base", ListValue, "koolproxy_acl_default", translate("访问控制默认规则"))
++e.default = 1
++e.rmempty = false
++e:value(0,translate("不过滤"))
++e:value(1,translate("http only"))
++e:value(2,translate("http + https"))
++e:value(3,translate("full port"))
++
++
++e = t:taboption("base", Flag, "koolproxy_host", translate("开启Adblock Plus Host"))
++e.default = 0
++e:depends("koolproxy_mode", "2")
++
++e = t:taboption("base", ListValue, "time_update", translate("Timing update rules"))
++for t = 0,23 do
+ 	e:value(t,translate("每天"..t.."点"))
+ end
+-e.default=0
+-e.rmempty=false
+-restart=t:taboption("base",Button,"restart",translate("Manually update the koolproxy rule"))
+-restart.inputtitle=translate("Update manually")
+-restart.inputstyle="reload"
+-restart.write=function()
+-	--luci.sys.call("/usr/share/koolproxy/koolproxyupdate rules 2>&1 >/dev/null")
+-	luci.sys.call("/usr/share/koolproxy/koolproxyupdate 2>&1 >/dev/null")
+-	luci.http.redirect(luci.dispatcher.build_url("admin","services","koolproxy"))
+-end
++e.default = 0
++e.rmempty = false
+ 
+---[[
+-update=t:taboption("base",Button,"update",translate("程序更新"))
+-update.inputtitle=translate("Update manually")
+-update.inputstyle="reload"
+-update.description=translate(string.format("程序版本：%s", v))
+-update.inputstyle="reload"
+-update.write=function()
+-	luci.sys.call("/usr/share/koolproxy/koolproxyupdate binary 2>&1 >/dev/null")
++restart = t:taboption("base", Button, "restart", translate("更新规则"))
++restart.inputtitle = translate("点击更新")
++restart.inputstyle = "reload"
++restart.write = function()
++	luci.sys.call("/usr/share/koolproxy/kpupdate 2>&1 >/dev/null")
+ 	luci.http.redirect(luci.dispatcher.build_url("admin","services","koolproxy"))
+ end
+---]]
+ 
+ e=t:taboption("base",DummyValue,"status0",translate("程序版本"))
+ e.value=string.format("[ %s ]", v)
+@@ -98,6 +97,7 @@ e=t:taboption("base",DummyValue,"status3",translate("自定规则"))
+ e.value=string.format("[ %s]", h)
+ e=t:taboption("base",DummyValue,"status4",translate("Host规则"))
+ e.value=string.format("[ %s]", i)
++
+ e=t:taboption("cert",DummyValue,"c1status",translate("<div align=\"left\">Certificate Restore</div>"))
+ e=t:taboption("cert",FileUpload,"")
+ e.template="koolproxy/caupload"
+@@ -162,6 +162,7 @@ e.cfgvalue=function(t,t)
+ end
+ e.write=function(e,e,e)
+ end
++
+ t=o:section(TypedSection,"acl_rule",translate("koolproxy ACLs"),
+ translate("ACLs is a tools which used to designate specific IP filter mode,The MAC addresses added to the list will be filtered using https"))
+ t.template="cbi/tblsection"
+@@ -187,17 +188,16 @@ luci.ip.neighbors({family = 4}, function(neighbor)
+ 		e:value(neighbor.mac, "%s (%s)" %{neighbor.mac, neighbor.dest:string()})
+ 	end
+ end)
+-e=t:option(ListValue,"filter_mode",translate("Filter Mode"))
++e=t:option(ListValue,"proxy_mode",translate("访问控制"))
+ e.width="20%"
+-e.default="disable"
++e.default=1
+ e.rmempty=false
+-e:value("disable",translate("No Filter"))
+-e:value("global",translate("Global Filter"))
+-e:value("adblock",translate("AdBlock Filter"))
+-e:value("ghttps",translate("Global Https Filter"))
+-e:value("ahttps",translate("AdBlock Https Filter"))
++e:value(0,translate("不过滤"))
++e:value(1,translate("http only"))
++e:value(2,translate("http + https"))
++e:value(3,translate("full port"))
+ 
+-t=o:section(TypedSection,"rss_rule",translate("koolproxy 规则订阅"), translate("请确保Koolproxy兼容规则"))
++t=o:section(TypedSection,"rss_rule",translate("koolproxy 规则订阅"), translate("请确保订阅规则的兼容性"))
+ t.anonymous=true
+ t.addremove=true
+ t.sortable=true
+diff --git a/files/usr/sbin/adblock b/files/usr/sbin/adblock
+index 9d82d6f..7534b1f 100755
+--- a/files/usr/sbin/adblock
++++ b/files/usr/sbin/adblock
+@@ -1,8 +1,7 @@
+ #!/bin/sh
+-cat /etc/adblocklist/adblock | sed "s/,/\n/g" | sed "s/^/ipset=&\/./g" | sed "s/$/\/adblock/g"  >> /tmp/adblock.conf
++cat /etc/adblocklist/adblock | sed "s/,/\n/g" | sed "s/^/ipset=&\/./g" | sed "s/$/\/black_koolproxy/g"  >> /tmp/adblock.conf
+ mv /tmp/adblock.conf /usr/share/koolproxy/adblock.conf
+-rm -f /tmp/adblock.conf
+ rm -f /tmp/dnsmasq.d/adblock.conf
+ ln -s /usr/share/koolproxy/adblock.conf /tmp/dnsmasq.d/adblock.conf
+-ipset -F adblock
++ipset -F black_koolproxy
+ /etc/init.d/dnsmasq restart
+diff --git a/files/usr/sbin/adblockplus b/files/usr/sbin/adblockplus
+index a665023..7cc1659 100755
+--- a/files/usr/sbin/adblockplus
++++ b/files/usr/sbin/adblockplus
+@@ -5,14 +5,15 @@ if [ "$?" == "0" ]; then
+ 	grep ^\|\|[^\*]*\^$ /tmp/adlist.txt | sed -e 's:||:address\=\/:' -e 's:\^:/0\.0\.0\.0:' > /tmp/dnsmasq.adblock
+ 	rm -f /tmp/adlist.txt
+ 	diff /tmp/dnsmasq.adblock /usr/share/koolproxy/dnsmasq.adblock >/dev/null
+-	[ $? = 0 ] && echo "$(date "+%F %T"): adblockplus本地规则和服务器规则相同，无需更新!" && rm -f /tmp/dnsmasq.adblock && exit
++	[ $? = 0 ] && echo "$(date "+%F %T"): adblockplus本地规则和服务器规则相同，无需更新!" && rm -f /tmp/dnsmasq.adblock && return 1
+ 	echo "$(date "+%F %T"): 检测到adblockplus规则有更新，开始转换规则！"
+ 	sed -i '/youku/d' /tmp/dnsmasq.adblock >/dev/null 2>&1
+ 	sed -i '/[1-9]\{1,3\}\.[1-9]\{1,3\}\.[1-9]\{1,3\}\.[1-9]\{1,3\}/d' /tmp/dnsmasq.adblock >/dev/null 2>&1
+ 	mv /tmp/dnsmasq.adblock /usr/share/koolproxy/dnsmasq.adblock
+ 	echo "$(date "+%F %T"): adblockplus规则转换完成，应用新规则。"
+-	/etc/init.d/dnsmasq restart >/dev/null 2>&1
++	return 0
+ else
+ 	echo "$(date "+%F %T"): 获取在线版本时出现错误! "
+ 	[ -f /tmp/adlist.txt ] && rm -f /tmp/adlist.txt
++	return 1
+ fi
+diff --git a/files/usr/share/koolproxy/adblock.conf b/files/usr/share/koolproxy/adblock.conf
+index 57f9cf1..34d23cb 100644
+--- a/files/usr/share/koolproxy/adblock.conf
++++ b/files/usr/share/koolproxy/adblock.conf
+@@ -1,136 +1,572 @@
+ #通用广告
+-ipset=/1000re.com/adblock
+-ipset=/168ad.cc/adblock
+-ipset=/ad8.cc/adblock
+-ipset=/adcash.com/adblock
+-ipset=/adexprt.com/adblock
+-ipset=/adhai.com/adblock
+-ipset=/adjuggler.com/adblock
+-ipset=/adkongjian.com/adblock
+-ipset=/adm668.com/adblock
+-ipset=/admaji.com/adblock
+-ipset=/adm-cnzz.net/adblock
+-ipset=/admin5.com/adblock
+-ipset=/admin5.net/adblock
+-ipset=/adnxs.com/adblock
+-ipset=/ad-plus.cn/adblock
+-ipset=/adpolestar.net/adblock
+-ipset=/adpush.cn/adblock
+-ipset=/ads360.cn/adblock
+-ipset=/ads80.com/adblock
+-ipset=/adsage.com/adblock
+-ipset=/adsame.com/adblock
+-ipset=/adsfactor.net/adblock
+-ipset=/adshost2.com/adblock
+-ipset=/adszui.com/adblock
+-ipset=/adultfriendfinder.com/adblock
+-ipset=/adv-first.ru/adblock
+-ipset=/adxpansion.com/adblock
+-ipset=/adxquare.com/adblock
+-ipset=/adyun.com/adblock
+-ipset=/allyes.com/adblock
+-ipset=/allyes.com.cn/adblock
+-ipset=/amazon-adsystem.com/adblock
+-ipset=/baifendian.com/adblock
+-ipset=/baitaiad.com/adblock
+-ipset=/buysellads.com/adblock
+-ipset=/buzzads.com/adblock
+-ipset=/clkads.com/adblock
+-ipset=/admaster.com.cn/adblock
+-ipset=/dcads.sina.com.cn/adblock
+-ipset=/blogad.com.tw/adblock
+-ipset=/comadsage.com/adblock
+-ipset=/cyad.cc/adblock
+-ipset=/cyad123.com/adblock
+-ipset=/d1ad.com/adblock
+-ipset=/doubleclick.net/adblock
+-ipset=/dwstatic.com/adblock
+-ipset=/irs01.com/adblock
+-ipset=/irs01.net/adblock
+-ipset=/juicyads.com/adblock
+-ipset=/madadsmedia.com/adblock
+-ipset=/miaozhen.com/adblock
+-ipset=/popads.net/adblock
+-ipset=/propellerads.com/adblock
+-ipset=/scorecardresearch.com/adblock
+-ipset=/serving-sys.com/adblock
+-ipset=/tenoad.com/adblock
+-ipset=/you1ad.com/adblock
+-ipset=/jtdcg.com/adblock
+-ipset=/51yes.com/adblock
+-ipset=/8ox.cn/adblock
+-ipset=/criteo.com/adblock
+-ipset=/88rpg.net/adblock
+-ipset=/3dwwwgame.com/adblock
++ipset=/1000re.com/black_koolproxy
++ipset=/168ad.cc/black_koolproxy
++ipset=/ad8.cc/black_koolproxy
++ipset=/adcash.com/black_koolproxy
++ipset=/adexprt.com/black_koolproxy
++ipset=/adhai.com/black_koolproxy
++ipset=/adjuggler.com/black_koolproxy
++ipset=/adkongjian.com/black_koolproxy
++ipset=/adm668.com/black_koolproxy
++ipset=/admaji.com/black_koolproxy
++ipset=/adm-cnzz.net/black_koolproxy
++ipset=/admin5.com/black_koolproxy
++ipset=/admin5.net/black_koolproxy
++ipset=/adnxs.com/black_koolproxy
++ipset=/ad-plus.cn/black_koolproxy
++ipset=/adpolestar.net/black_koolproxy
++ipset=/adpush.cn/black_koolproxy
++ipset=/ads360.cn/black_koolproxy
++ipset=/ads80.com/black_koolproxy
++ipset=/adsage.com/black_koolproxy
++ipset=/adsame.com/black_koolproxy
++ipset=/adsfactor.net/black_koolproxy
++ipset=/adshost2.com/black_koolproxy
++ipset=/adszui.com/black_koolproxy
++ipset=/adultfriendfinder.com/black_koolproxy
++ipset=/adv-first.ru/black_koolproxy
++ipset=/adxpansion.com/black_koolproxy
++ipset=/adxquare.com/black_koolproxy
++ipset=/adyun.com/black_koolproxy
++ipset=/allyes.com/black_koolproxy
++ipset=/allyes.com.cn/black_koolproxy
++ipset=/amazon-adsystem.com/black_koolproxy
++ipset=/baifendian.com/black_koolproxy
++ipset=/baitaiad.com/black_koolproxy
++ipset=/buysellads.com/black_koolproxy
++ipset=/buzzads.com/black_koolproxy
++ipset=/clkads.com/black_koolproxy
++ipset=/admaster.com.cn/black_koolproxy
++ipset=/dcads.sina.com.cn/black_koolproxy
++ipset=/blogad.com.tw/black_koolproxy
++ipset=/comadsage.com/black_koolproxy
++ipset=/cyad.cc/black_koolproxy
++ipset=/cyad123.com/black_koolproxy
++ipset=/d1ad.com/black_koolproxy
++ipset=/doubleclick.net/black_koolproxy
++ipset=/dwstatic.com/black_koolproxy
++ipset=/irs01.com/black_koolproxy
++ipset=/irs01.net/black_koolproxy
++ipset=/juicyads.com/black_koolproxy
++ipset=/madadsmedia.com/black_koolproxy
++ipset=/miaozhen.com/black_koolproxy
++ipset=/popads.net/black_koolproxy
++ipset=/propellerads.com/black_koolproxy
++ipset=/scorecardresearch.com/black_koolproxy
++ipset=/serving-sys.com/black_koolproxy
++ipset=/tenoad.com/black_koolproxy
++ipset=/you1ad.com/black_koolproxy
++ipset=/jtdcg.com/black_koolproxy
++ipset=/51yes.com/black_koolproxy
++ipset=/8ox.cn/black_koolproxy
++ipset=/criteo.com/black_koolproxy
++ipset=/88rpg.net/black_koolproxy
++ipset=/3dwwwgame.com/black_koolproxy
+ 
+ #百度广告
+-ipset=/cbjs.baidu.com/adblock
+-ipset=/list.video.baidu.com/adblock
+-ipset=/nsclick.baidu.com/adblock
+-ipset=/play.baidu.com/adblock
+-ipset=/sclick.baidu.com/adblock
+-ipset=/tieba.baidu.com/adblock
+-ipset=/baidustatic.com/adblock
+-ipset=/bdimg.com/adblock
+-ipset=/bdstatic.com/adblock
+-ipset=/share.baidu.com/adblock
+-ipset=/hm.baidu.com/adblock
++ipset=/cbjs.baidu.com/black_koolproxy
++ipset=/list.video.baidu.com/black_koolproxy
++ipset=/nsclick.baidu.com/black_koolproxy
++ipset=/play.baidu.com/black_koolproxy
++ipset=/sclick.baidu.com/black_koolproxy
++ipset=/tieba.baidu.com/black_koolproxy
++ipset=/baidustatic.com/black_koolproxy
++ipset=/bdimg.com/black_koolproxy
++ipset=/bdstatic.com/black_koolproxy
++ipset=/share.baidu.com/black_koolproxy
++ipset=/hm.baidu.com/black_koolproxy
+ 
+ #谷歌广告
+-ipset=/googleadservices.com/adblock
+-ipset=/googleadsserving.cn/adblock
+-ipset=/googlesyndication.com/adblock
+-ipset=/googletagservices.com/adblock
+-ipset=/1-ps.googleusercontent.com/adblock
++ipset=/googleadservices.com/black_koolproxy
++ipset=/googleadsserving.cn/black_koolproxy
++ipset=/googlesyndication.com/black_koolproxy
++ipset=/googletagservices.com/black_koolproxy
++ipset=/1-ps.googleusercontent.com/black_koolproxy
+ 
+ #视频广告
+-ipset=/v.baidu.com/adblock
+-ipset=/1000fr.net/adblock
+-ipset=/56.com/adblock
+-ipset=/v-56.com/adblock
+-ipset=/acfun.com/adblock
+-ipset=/acfun.tv/adblock
+-ipset=/baofeng.com/adblock
+-ipset=/baofeng.net/adblock
+-ipset=/cntv.cn/adblock
+-ipset=/hoopchina.com.cn/adblock
+-ipset=/funshion.com/adblock
+-ipset=/fun.tv/adblock
+-ipset=/hitvs.cn/adblock
+-ipset=/hljtv.com/adblock
+-ipset=/iqiyi.com/adblock
+-ipset=/qiyi.com/adblock
+-ipset=/tv.sohu.com/adblock
+-ipset=/hd.sohu.com/adblock
+-ipset=/aty.sohu.com/adblock
+-ipset=/vrs.sohu.com/adblock
+-ipset=/hd.sohu.com.cn/adblock
+-ipset=/agn.aty.sohu.com/adblock
+-ipset=/itc.cn/adblock
+-ipset=/kankan.com/adblock
+-ipset=/ku6.com/adblock
+-ipset=/letv.com/adblock
+-ipset=/letvcloud.com/adblock
+-ipset=/letvimg.com/adblock
+-ipset=/pplive.cn/adblock
+-ipset=/pps.tv/adblock
+-ipset=/ppsimg.com/adblock
+-ipset=/pptv.com/adblock
+-ipset=/v.qq.com/adblock
+-ipset=/l.qq.com/adblock
+-ipset=/video.sina.com.cn/adblock
+-ipset=/tudou.com/adblock
+-ipset=/wasu.cn/adblock
+-ipset=/analytics-union.xunlei.com/adblock
+-ipset=/kankan.xunlei.com/adblock
+-ipset=/youku.com/adblock
+-ipset=/hunantv.com/adblock
++ipset=/v.baidu.com/black_koolproxy
++ipset=/1000fr.net/black_koolproxy
++ipset=/56.com/black_koolproxy
++ipset=/v-56.com/black_koolproxy
++ipset=/acfun.com/black_koolproxy
++ipset=/acfun.tv/black_koolproxy
++ipset=/baofeng.com/black_koolproxy
++ipset=/baofeng.net/black_koolproxy
++ipset=/cntv.cn/black_koolproxy
++ipset=/hoopchina.com.cn/black_koolproxy
++ipset=/funshion.com/black_koolproxy
++ipset=/fun.tv/black_koolproxy
++ipset=/hitvs.cn/black_koolproxy
++ipset=/hljtv.com/black_koolproxy
++ipset=/iqiyi.com/black_koolproxy
++ipset=/qiyi.com/black_koolproxy
++ipset=/tv.sohu.com/black_koolproxy
++ipset=/hd.sohu.com/black_koolproxy
++ipset=/aty.sohu.com/black_koolproxy
++ipset=/vrs.sohu.com/black_koolproxy
++ipset=/hd.sohu.com.cn/black_koolproxy
++ipset=/agn.aty.sohu.com/black_koolproxy
++ipset=/itc.cn/black_koolproxy
++ipset=/kankan.com/black_koolproxy
++ipset=/ku6.com/black_koolproxy
++ipset=/letv.com/black_koolproxy
++ipset=/letvcloud.com/black_koolproxy
++ipset=/letvimg.com/black_koolproxy
++ipset=/pplive.cn/black_koolproxy
++ipset=/pps.tv/black_koolproxy
++ipset=/ppsimg.com/black_koolproxy
++ipset=/pptv.com/black_koolproxy
++ipset=/v.qq.com/black_koolproxy
++ipset=/l.qq.com/black_koolproxy
++ipset=/video.sina.com.cn/black_koolproxy
++ipset=/tudou.com/black_koolproxy
++ipset=/wasu.cn/black_koolproxy
++ipset=/analytics-union.xunlei.com/black_koolproxy
++ipset=/kankan.xunlei.com/black_koolproxy
++ipset=/youku.com/black_koolproxy
++ipset=/hunantv.com/black_koolproxy
+ 
+ #特定网站
+-ipset=/anywlan.com/adblock
+-ipset=/qidian.com/adblock
+-ipset=/uuu9.com/adblock
+-ipset=/suppig.net/adblock
+-ipset=/ali213.net/adblock
+-ipset=/tanx.com/adblock
+-ipset=/mp4ba.com/adblock
++ipset=/anywlan.com/black_koolproxy
++ipset=/qidian.com/black_koolproxy
++ipset=/uuu9.com/black_koolproxy
++ipset=/suppig.net/black_koolproxy
++ipset=/ali213.net/black_koolproxy
++ipset=/cnbeta.com/black_koolproxy
++ipset=/mydrivers.com/black_koolproxy
++ipset=/tanx.com/black_koolproxy
++ipset=/mp4ba.com/black_koolproxy
++ipset=/.a.baiy.net/black_koolproxy
++ipset=/.a.collective-media.net/black_koolproxy
++ipset=/.a.itiexue.net/black_koolproxy
++ipset=/.a.kickass.to/black_koolproxy
++ipset=/.a.shamla.net/black_koolproxy
++ipset=/.a.xlpu.cc/black_koolproxy
++ipset=/.aavideo.xyz/black_koolproxy
++ipset=/.action.data.cp61.ott.cibntv.net/black_koolproxy
++ipset=/.ad-apac.doubleclick.net/black_koolproxy
++ipset=/.ad.adfurikun.jp/black_koolproxy
++ipset=/.ad.csdn.net/black_koolproxy
++ipset=/.ad.doubleclick.net/black_koolproxy
++ipset=/.ad.ettoday.net/black_koolproxy
++ipset=/.ad.fglighting.net/black_koolproxy
++ipset=/.ad.hefei.cc/black_koolproxy
++ipset=/.ad.jp.doubleclick.net/black_koolproxy
++ipset=/.ad.leadboltads.net/black_koolproxy
++ipset=/.ad.leadboltmobile.net/black_koolproxy
++ipset=/.ad.qingting.fm/black_koolproxy
++ipset=/.ad.yixin.im/black_koolproxy
++ipset=/.ad7.tagphi.net/black_koolproxy
++ipset=/.adbma.adk2.co/black_koolproxy
++ipset=/.adclick.g.doubleclick.net/black_koolproxy
++ipset=/.adimg.cqnews.net/black_koolproxy
++ipset=/.adimg.daumcdn.net/black_koolproxy
++ipset=/.adimgs.xici.net/black_koolproxy
++ipset=/.adinf.cp11.ott.cibntv.net/black_koolproxy
++ipset=/.adm.zbinfo.net/black_koolproxy
++ipset=/.admaster.mobi/black_koolproxy
++ipset=/.admgr.qingting.fm/black_koolproxy
++ipset=/.admicro1.vcmedia.vn/black_koolproxy
++ipset=/.admicro4.vcmedia.vn/black_koolproxy
++ipset=/.admicro5.vcmedia.vn/black_koolproxy
++ipset=/.admicro6.vcmedia.vn/black_koolproxy
++ipset=/.admin.louxia.org/black_koolproxy
++ipset=/.adplexmedia.adk2.co/black_koolproxy
++ipset=/.ads.csdn.net/black_koolproxy
++ipset=/.ads.doublemax.net/black_koolproxy
++ipset=/.ads.mp.mydas.mobi/black_koolproxy
++ipset=/.ads.mydas.mobi/black_koolproxy
++ipset=/.ads.pro-market.net/black_koolproxy
++ipset=/.ads.trafficjunky.net/black_koolproxy
++ipset=/.ads.wasu.tv/black_koolproxy
++ipset=/.ads2.opensubtitles.org/black_koolproxy
++ipset=/.adstat.cp11.ott.cibntv.net/black_koolproxy
++ipset=/.adsystem.wasu.tv/black_koolproxy
++ipset=/.adv.fjtv.net/black_koolproxy
++ipset=/.adwasu.wasu.tv/black_koolproxy
++ipset=/.ag.nukefans.net/black_koolproxy
++ipset=/.agn.aty.cp45.ott.cibntv.net/black_koolproxy
++ipset=/.al.za5.net/black_koolproxy
++ipset=/.aladdin.genieesspv.jp/black_koolproxy
++ipset=/.alog.umeng.co/black_koolproxy
++ipset=/.amiok.org/black_koolproxy
++ipset=/.ams.51junpin.net/black_koolproxy
++ipset=/.analytics.ad.daum.net/black_koolproxy
++ipset=/.analytics.ws.126.net/black_koolproxy
++ipset=/.android.push.126.net/black_koolproxy
++ipset=/.androidsdk.ads.mp.mydas.mobi/black_koolproxy
++ipset=/.aos.gw.youmi.net/black_koolproxy
++ipset=/.aos.prf.hn/black_koolproxy
++ipset=/.aos.wall.youmi.net/black_koolproxy
++ipset=/.api.adfurikun.jp/black_koolproxy
++ipset=/.api.adtimaserver.vn/black_koolproxy
++ipset=/.api.cupid.ptqy.gitv.tv/black_koolproxy
++ipset=/.api.dewmobile.net/black_koolproxy
++ipset=/.api.oneyuan.nagezan.net/black_koolproxy
++ipset=/.apklog.cp11.ott.cibntv.net/black_koolproxy
++ipset=/.app-g.39.net/black_koolproxy
++ipset=/.app.50bang.org/black_koolproxy
++ipset=/.ark.cp21.ott.cibntv.net/black_koolproxy
++ipset=/.ark.letv-epg.wasu.tv/black_koolproxy
++ipset=/.as.kejet.net/black_koolproxy
++ipset=/.asimgs.cp61.ott.cibntv.net/black_koolproxy
++ipset=/.au.umeng.co/black_koolproxy
++ipset=/.au.youmi.net/black_koolproxy
++ipset=/.aw.kejet.net/black_koolproxy
++ipset=/.b.baiy.net/black_koolproxy
++ipset=/.b.bst.126.net/black_koolproxy
++ipset=/.b.yunfanlm.net/black_koolproxy
++ipset=/.banner.img.static.youmi.net/black_koolproxy
++ipset=/.bdaz.adsfactor.net/black_koolproxy
++ipset=/.beacon.krxd.net/black_koolproxy
++ipset=/.bid.g.doubleclick.net/black_koolproxy
++ipset=/.bigbos.top/black_koolproxy
++ipset=/.biz5.sandai.net/black_koolproxy
++ipset=/.bkmcgi.play.cp81.ott.cibntv.net/black_koolproxy
++ipset=/.bksdkconfig.play.cp81.ott.cibntv.net/black_koolproxy
++ipset=/.brance.play.cp81.ott.cibntv.net/black_koolproxy
++ipset=/.bshare.optimix.asia/black_koolproxy
++ipset=/.bx.optimix.asia/black_koolproxy
++ipset=/.c.ad6media.fr/black_koolproxy
++ipset=/.c.mnet-ad.net/black_koolproxy
++ipset=/.c03.optimix.asia/black_koolproxy
++ipset=/.c1.adform.net/black_koolproxy
++ipset=/.c1.popads.net/black_koolproxy
++ipset=/.c2.97you.net/black_koolproxy
++ipset=/.c2.popads.net/black_koolproxy
++ipset=/.c5.97you.net/black_koolproxy
++ipset=/.cachenotice.cp11.ott.cibntv.net/black_koolproxy
++ipset=/.cc.bigbos.top/black_koolproxy
++ipset=/.cc.ccg51.win/black_koolproxy
++ipset=/.cc.yfi052.pw/black_koolproxy
++ipset=/.ccg51.win/black_koolproxy
++ipset=/.cdn.adsfactor.net/black_koolproxy
++ipset=/.cdn.clicktale.net/black_koolproxy
++ipset=/.cdn.innity.net/black_koolproxy
++ipset=/.cdn.media.innity.net/black_koolproxy
++ipset=/.cdn1.ettoday.net/black_koolproxy
++ipset=/.cdn3.e705.net/black_koolproxy
++ipset=/.cdnonead-onead.cdn.hinet.net/black_koolproxy
++ipset=/.cdnssl.clicktale.net/black_koolproxy
++ipset=/.cf.gdatecube.net/black_koolproxy
++ipset=/.cfg.adsmogo.mobi/black_koolproxy
++ipset=/.cfg.adsmogo.net/black_koolproxy
++ipset=/.cfg.adsmogo.org/black_koolproxy
++ipset=/.ck.kejet.net/black_koolproxy
++ipset=/.clicklog.moviebox.baofeng.net/black_koolproxy
++ipset=/.clicktalecdn.sslcs.cdngc.net/black_koolproxy
++ipset=/.clk.gentags.net/black_koolproxy
++ipset=/.cloud.zyiis.net/black_koolproxy
++ipset=/.cm.fastapi.net/black_koolproxy
++ipset=/.cm.g.doubleclick.net/black_koolproxy
++ipset=/.cm.gtags.net/black_koolproxy
++ipset=/.cmarket.kejet.net/black_koolproxy
++ipset=/.cms.gtags.net/black_koolproxy
++ipset=/.code2.huimee.net/black_koolproxy
++ipset=/.config.baofeng.net/black_koolproxy
++ipset=/.contextual.media.net/black_koolproxy
++ipset=/.corner.houyi.baofeng.net/black_koolproxy
++ipset=/.count.game.pps.tv/black_koolproxy
++ipset=/.counter.csdn.net/black_koolproxy
++ipset=/.cp.3big.net/black_koolproxy
++ipset=/.cp.5jjx.net/black_koolproxy
++ipset=/.cp.efo.cc/black_koolproxy
++ipset=/.cp.jiajv.net/black_koolproxy
++ipset=/.cpc.88rpg.net/black_koolproxy
++ipset=/.cus.adsmogo.mobi/black_koolproxy
++ipset=/.cus.adsmogo.org/black_koolproxy
++ipset=/.cvt.mydas.mobi/black_koolproxy
++ipset=/.d.39.net/black_koolproxy
++ipset=/.d.pixiv.org/black_koolproxy
++ipset=/.d.yoyi.tv/black_koolproxy
++ipset=/.d1635hfcvs8ero.cloudfront.net/black_koolproxy
++ipset=/.d3al52d8cojds7.cloudfront.net/black_koolproxy
++ipset=/.d3f.houyi.baofeng.net/black_koolproxy
++ipset=/.daima.jiduan.cc/black_koolproxy
++ipset=/.daima.kandu.cc/black_koolproxy
++ipset=/.dat.gtags.net/black_koolproxy
++ipset=/.dc.cp21.ott.cibntv.net/black_koolproxy
++ipset=/.dc.csdn.net/black_koolproxy
++ipset=/.dc.letv-epg.wasu.tv/black_koolproxy
++ipset=/.dc2.csdn.net/black_koolproxy
++ipset=/.de.as.cp61.ott.cibntv.net/black_koolproxy
++ipset=/.dex.advg.jp/black_koolproxy
++ipset=/.display.ad.daum.net/black_koolproxy
++ipset=/.dl-vip.pcfaster.baidu.co.th/black_koolproxy
++ipset=/.dl.img80.net/black_koolproxy
++ipset=/.dl.xyymall.net/black_koolproxy
++ipset=/.dload.qd.qingting.fm/black_koolproxy
++ipset=/.dm531.dm530.net/black_koolproxy
++ipset=/.dm532.dm530.net/black_koolproxy
++ipset=/.dmp.kejet.net/black_koolproxy
++ipset=/.dmp.tenmax.io/black_koolproxy
++ipset=/.dolphin.ftimg.net/black_koolproxy
++ipset=/.down.laomaotao.net/black_koolproxy
++ipset=/.down.xiazai2.net/black_koolproxy
++ipset=/.down.xiazaiyuan.net/black_koolproxy
++ipset=/.downloada.dewmobile.net/black_koolproxy
++ipset=/.downloadb.dewmobile.net/black_koolproxy
++ipset=/.dp3.play.cp81.ott.cibntv.net/black_koolproxy
++ipset=/.dpvc.39.net/black_koolproxy
++ipset=/.dr3k6qonw2kee.cloudfront.net/black_koolproxy
++ipset=/.dt.39photo.net/black_koolproxy
++ipset=/.dz.njq.net/black_koolproxy
++ipset=/.e-vcdn.anthill.vn/black_koolproxy
++ipset=/.e.e708.net/black_koolproxy
++ipset=/.ee.e701.net/black_koolproxy
++ipset=/.ex.puata.info/black_koolproxy
++ipset=/.f.e703.net/black_koolproxy
++ipset=/.f.e719.net/black_koolproxy
++ipset=/.f.novanet.vn/black_koolproxy
++ipset=/.f2.e703.net/black_koolproxy
++ipset=/.float.sandai.net/black_koolproxy
++ipset=/.g.ad8.cc/black_koolproxy
++ipset=/.g.doubleclick.net/black_koolproxy
++ipset=/.g.fastapi.net/black_koolproxy
++ipset=/.g.ousns.net/black_koolproxy
++ipset=/.game.pps.tv/black_koolproxy
++ipset=/.googleads.g.doubleclick.net/black_koolproxy
++ipset=/.guess.union2.50bang.org/black_koolproxy
++ipset=/.ha.pro-market.net/black_koolproxy
++ipset=/.haitaoad.nosdn.127.net/black_koolproxy
++ipset=/.i.9le.net/black_koolproxy
++ipset=/.i.adfurikun.jp/black_koolproxy
++ipset=/.i.bsshw.net/black_koolproxy
++ipset=/.i.jiajv.net/black_koolproxy
++ipset=/.i.l.inmobicdn.net/black_koolproxy
++ipset=/.icon.51.la/black_koolproxy
++ipset=/.id1.anreson.net/black_koolproxy
++ipset=/.ii.bsshw.net/black_koolproxy
++ipset=/.ima.xcyjzs.net/black_koolproxy
++ipset=/.images.cp45.ott.cibntv.net/black_koolproxy
++ipset=/.img.88rpg.net/black_koolproxy
++ipset=/.img.ads.csdn.net/black_koolproxy
++ipset=/.img.users.51.la/black_koolproxy
++ipset=/.img1.126.net/black_koolproxy
++ipset=/.img1.pszyzxh.org/black_koolproxy
++ipset=/.img2.126.net/black_koolproxy
++ipset=/.imgcdn.xixiwan.net/black_koolproxy
++ipset=/.imp-mdsp.avazutracking.net/black_koolproxy
++ipset=/.imp.adsmogo.mobi/black_koolproxy
++ipset=/.imp.adsmogo.net/black_koolproxy
++ipset=/.ipua.adfurikun.jp/black_koolproxy
++ipset=/.irs01.net/black_koolproxy
++ipset=/.j.microad.net/black_koolproxy
++ipset=/.jgl.microad.net/black_koolproxy
++ipset=/.jp.as.cp61.ott.cibntv.net/black_koolproxy
++ipset=/.jph.itiexue.net/black_koolproxy
++ipset=/.js-1.pchome.net/black_koolproxy
++ipset=/.js.a3p4.net/black_koolproxy
++ipset=/.js.cyad.cc/black_koolproxy
++ipset=/.js.mumayi.net/black_koolproxy
++ipset=/.js.revsci.net/black_koolproxy
++ipset=/.js.users.51.la/black_koolproxy
++ipset=/.js1116.anreson.net/black_koolproxy
++ipset=/.js1315.anreson.net/black_koolproxy
++ipset=/.js1940.anreson.net/black_koolproxy
++ipset=/.js2294.anreson.net/black_koolproxy
++ipset=/.js3555.hongtaidichan.net/black_koolproxy
++ipset=/.js4476.hongtaidichan.net/black_koolproxy
++ipset=/.js4775.hongtaidichan.net/black_koolproxy
++ipset=/.js883.anreson.net/black_koolproxy
++ipset=/.jsc.dt07.net/black_koolproxy
++ipset=/.jssd.kb20.cc/black_koolproxy
++ipset=/.jump1.pszyzxh.org/black_koolproxy
++ipset=/.jump2.pszyzxh.org/black_koolproxy
++ipset=/.kawa11.space/black_koolproxy
++ipset=/.keydot.net/black_koolproxy
++ipset=/.kti.bigbos.top/black_koolproxy
++ipset=/.l.fastapi.net/black_koolproxy
++ipset=/.lg.logging.admicro.vn/black_koolproxy
++ipset=/.lg1.logging.admicro.vn/black_koolproxy
++ipset=/.link.jiduan.cc/black_koolproxy
++ipset=/.livep.l.cp81.ott.cibntv.net/black_koolproxy
++ipset=/.lives.l.cp81.ott.cibntv.net/black_koolproxy
++ipset=/.loading.baofeng5.baofeng.net/black_koolproxy
++ipset=/.log.adtimaserver.vn/black_koolproxy
++ipset=/.log.houyi.baofeng.net/black_koolproxy
++ipset=/.log.tiexue.net/black_koolproxy
++ipset=/.logger.qingting.fm/black_koolproxy
++ipset=/.logic.cpm.cm.sandai.net/black_koolproxy
++ipset=/.m.analytics.126.net/black_koolproxy
++ipset=/.m.down.sandai.net/black_koolproxy
++ipset=/.m.kejet.net/black_koolproxy
++ipset=/.mc.yandex.ru/black_koolproxy
++ipset=/.mcc.chinauma.net/black_koolproxy
++ipset=/.mcgi.play.cp81.ott.cibntv.net/black_koolproxy
++ipset=/.media.adtimaserver.vn/black_koolproxy
++ipset=/.media.trafficjunky.net/black_koolproxy
++ipset=/.mg.dt07.net/black_koolproxy
++ipset=/.mid.houyi.baofeng.net/black_koolproxy
++ipset=/.mimg.126.net/black_koolproxy
++ipset=/.mixer.cupid.ptqy.gitv.tv/black_koolproxy
++ipset=/.mlog.search.xiaomi.net/black_koolproxy
++ipset=/.mmg.aty.cp45.ott.cibntv.net/black_koolproxy
++ipset=/.ms.anreson.net/black_koolproxy
++ipset=/.msg.71.am/black_koolproxy
++ipset=/.msg.ptqy.gitv.tv/black_koolproxy
++ipset=/.msg.video.ptqy.gitv.tv/black_koolproxy
++ipset=/.msg2.video.ptqy.gitv.tv/black_koolproxy
++ipset=/.msga.71.am/black_koolproxy
++ipset=/.msga.ptqy.gitv.tv/black_koolproxy
++ipset=/.nclog.mars.baofeng.net/black_koolproxy
++ipset=/.news-l.play.cp81.ott.cibntv.net/black_koolproxy
++ipset=/.news.766ba.net/black_koolproxy
++ipset=/.news.push.126.net/black_koolproxy
++ipset=/.nl.rcd.ptqy.gitv.tv/black_koolproxy
++ipset=/.oc.umeng.co/black_koolproxy
++ipset=/.oki.xcyjzs.net/black_koolproxy
++ipset=/.okt.xcyjzs.net/black_koolproxy
++ipset=/.onlinetips.baofeng5.baofeng.net/black_koolproxy
++ipset=/.outer.anquan.org/black_koolproxy
++ipset=/.p-l.play.cp81.ott.cibntv.net/black_koolproxy
++ipset=/.p.rhgw.net/black_koolproxy
++ipset=/.panel.adtify.pl/black_koolproxy
++ipset=/.parser.houyi.baofeng.net/black_koolproxy
++ipset=/.pb.bi.gitv.tv/black_koolproxy
++ipset=/.pb.ott.hd.cp45.ott.cibntv.net/black_koolproxy
++ipset=/.pclog.suishenyun.net/black_koolproxy
++ipset=/.pd7-imp.revsci.net/black_koolproxy
++ipset=/.phpad.cqnews.net/black_koolproxy
++ipset=/.pic.fastapi.net/black_koolproxy
++ipset=/.pix04.revsci.net/black_koolproxy
++ipset=/.pre.api.tw06.xlmc.sandai.net/black_koolproxy
++ipset=/.ps.eyeota.net/black_koolproxy
++ipset=/.pt.trafficjunky.net/black_koolproxy
++ipset=/.pubads.g.doubleclick.net/black_koolproxy
++ipset=/.push.tv.api.3g.cp31.ott.cibntv.net/black_koolproxy
++ipset=/.pvlog.moviebox.baofeng.net/black_koolproxy
++ipset=/.px.owneriq.net/black_koolproxy
++ipset=/.qiye11.ejunshi.net/black_koolproxy
++ipset=/.qosp.msg.71.am/black_koolproxy
++ipset=/.qr.cp31.ott.cibntv.net/black_koolproxy
++ipset=/.quote.51.la/black_koolproxy
++ipset=/.r.l.cp31.ott.cibntv.net/black_koolproxy
++ipset=/.r.popin.cc/black_koolproxy
++ipset=/.r.youmi.net/black_koolproxy
++ipset=/.r1.cp31.ott.cibntv.net/black_koolproxy
++ipset=/.resolver.msg.xiaomi.net/black_koolproxy
++ipset=/.rlog.popin.cc/black_koolproxy
++ipset=/.rtb-asiamax.tenmax.io/black_koolproxy
++ipset=/.rtb-p.kejet.net/black_koolproxy
++ipset=/.s.5jjx.net/black_koolproxy
++ipset=/.s.ato.mx/black_koolproxy
++ipset=/.s.de123.net/black_koolproxy
++ipset=/.s.druu.cc/black_koolproxy
++ipset=/.s.eclick.vn/black_koolproxy
++ipset=/.s.effectivemeasure.net/black_koolproxy
++ipset=/.s.fastapi.net/black_koolproxy
++ipset=/.s.gdatecube.net/black_koolproxy
++ipset=/.s.qd.qingting.fm/black_koolproxy
++ipset=/.s.youmi.net/black_koolproxy
++ipset=/.s0.2mdn.net/black_koolproxy
++ipset=/.s03.optimix.asia/black_koolproxy
++ipset=/.s1.2mdn.net/black_koolproxy
++ipset=/.s4.55.la/black_koolproxy
++ipset=/.s5.keydot.net/black_koolproxy
++ipset=/.sd.kk3g.net/black_koolproxy
++ipset=/.sd.mmfile.net/black_koolproxy
++ipset=/.sdk.data.cp61.ott.cibntv.net/black_koolproxy
++ipset=/.sdk.m.cp31.ott.cibntv.net/black_koolproxy
++ipset=/.sdkconfig.play.cp81.ott.cibntv.net/black_koolproxy
++ipset=/.securepubads.g.doubleclick.net/black_koolproxy
++ipset=/.serve.popads.net/black_koolproxy
++ipset=/.servedby.adsfactor.net/black_koolproxy
++ipset=/.servicegetbook.net/black_koolproxy
++ipset=/.sg-cdn.effectivemeasure.net/black_koolproxy
++ipset=/.sh.adingo.jp/black_koolproxy
++ipset=/.shzyjbr.wtdtjs.rocks/black_koolproxy
++ipset=/.sis.jpush.io/black_koolproxy
++ipset=/.sit.gentags.net/black_koolproxy
++ipset=/.sjkmio.812920.top/black_koolproxy
++ipset=/.snap.snapmobile.asia/black_koolproxy
++ipset=/.sp.gmossp-sp.jp/black_koolproxy
++ipset=/.spap.adingo.jp.eimg.jp/black_koolproxy
++ipset=/.spap.adingo.jp/black_koolproxy
++ipset=/.spapi.i-mobile.co.jp/black_koolproxy
++ipset=/.spdmg-backend.i-mobile.co.jp/black_koolproxy
++ipset=/.spdmg.i-mobile.co.jp/black_koolproxy
++ipset=/.ss.subo.me/black_koolproxy
++ipset=/.ss2p.uuxs.net/black_koolproxy
++ipset=/.ssl-cdn.media.innity.net/black_koolproxy
++ipset=/.ssp.tenmax.io/black_koolproxy
++ipset=/.stat.cp33.ott.cibntv.net/black_koolproxy
++ipset=/.stat.gw.youmi.net/black_koolproxy
++ipset=/.stat.pchome.net/black_koolproxy
++ipset=/.stat.titan.imgo.tv/black_koolproxy
++ipset=/.static.adtimaserver.vn/black_koolproxy
++ipset=/.static.anquan.org/black_koolproxy
++ipset=/.static.criteo.net/black_koolproxy
++ipset=/.static.eclick.vn/black_koolproxy
++ipset=/.static.houyi.baofeng.net/black_koolproxy
++ipset=/.static.novanet.vn/black_koolproxy
++ipset=/.static.snapmobile.asia/black_koolproxy
++ipset=/.static.youmi.net/black_koolproxy
++ipset=/.stats.g.doubleclick.net/black_koolproxy
++ipset=/.store.ptqy.gitv.tv/black_koolproxy
++ipset=/.store.tv.api.3g.cp31.ott.cibntv.net/black_koolproxy
++ipset=/.super.kdnet.net/black_koolproxy
++ipset=/.t-l.play.cp81.ott.cibntv.net/black_koolproxy
++ipset=/.t.adcrops.net/black_koolproxy
++ipset=/.t.vbxx.net/black_koolproxy
++ipset=/.t2.vbxx.net/black_koolproxy
++ipset=/.tenmax-static.cacafly.net/black_koolproxy
++ipset=/.test.api.xlmc.sandai.net/black_koolproxy
++ipset=/.tinydrag.t.cp61.ott.cibntv.net/black_koolproxy
++ipset=/.tj.yule8.net/black_koolproxy
++ipset=/.tp.sphwq.net/black_koolproxy
++ipset=/.track.dmp.youmi.net/black_koolproxy
++ipset=/.tw13b093.sandai.net/black_koolproxy
++ipset=/.twbill.xyz/black_koolproxy
++ipset=/.u.1133.cc/black_koolproxy
++ipset=/.ujs.jialiren.net/black_koolproxy
++ipset=/.uma.gtags.net/black_koolproxy
++ipset=/.union2.50bang.org/black_koolproxy
++ipset=/.update.123juzi.net/black_koolproxy
++ipset=/.ups.ksmobile.net/black_koolproxy
++ipset=/.users.51.la/black_koolproxy
++ipset=/.ut.gtags.net/black_koolproxy
++ipset=/.util.nphoto.net/black_koolproxy
++ipset=/.v.e704.net/black_koolproxy
++ipset=/.v.img80.net/black_koolproxy
++ipset=/.v.jtxh.net/black_koolproxy
++ipset=/.val.atm.cp31.ott.cibntv.net/black_koolproxy
++ipset=/.valf.atm.cp31.ott.cibntv.net/black_koolproxy
++ipset=/.vip.yoyozz.net/black_koolproxy
++ipset=/.vip.yule8.net/black_koolproxy
++ipset=/.vipjs.csad.cc/black_koolproxy
++ipset=/.vpie.net/black_koolproxy
++ipset=/.w.3big.net/black_koolproxy
++ipset=/.w.efo.cc/black_koolproxy
++ipset=/.w2.3big.net/black_koolproxy
++ipset=/.w2.docols.net/black_koolproxy
++ipset=/.wazero.online/black_koolproxy
++ipset=/.web.51.la/black_koolproxy
++ipset=/.web.houyi.baofeng.net/black_koolproxy
++ipset=/.web1.51.la/black_koolproxy
++ipset=/.web2.51.la/black_koolproxy
++ipset=/.wl.houyi.baofeng.net/black_koolproxy
++ipset=/.wm.20150.net/black_koolproxy
++ipset=/.ws.ksmobile.net/black_koolproxy
++ipset=/.ww202.keyyou.net/black_koolproxy
++ipset=/.www.51.la/black_koolproxy
++ipset=/.www.6604.org/black_koolproxy
++ipset=/.www.ads8.cc/black_koolproxy
++ipset=/.www.daima123.cc/black_koolproxy
++ipset=/.www.i1236.net/black_koolproxy
++ipset=/.www.keydot.net/black_koolproxy
++ipset=/.www.laomaotao.net/black_koolproxy
++ipset=/.www.umeng.co/black_koolproxy
++ipset=/.www.yanjiele8.club/black_koolproxy
++ipset=/.www.yoyozz.net/black_koolproxy
++ipset=/.xs.houyi.baofeng.net/black_koolproxy
++ipset=/.y.one.impact-ad.jp/black_koolproxy
++ipset=/.yads.c.yimg.jp/black_koolproxy
++ipset=/.yads.yahoo.co.jp/black_koolproxy
++ipset=/.yiyuan.nagezan.net/black_koolproxy
++ipset=/.yoo.yiiyoo.net/black_koolproxy
++ipset=/1000fr.net/black_koolproxy
++ipset=/acfun.tv/black_koolproxy
++ipset=/baofeng.net/black_koolproxy
++ipset=/fun.tv/black_koolproxy
++ipset=/pps.tv/black_koolproxy
+diff --git a/files/usr/share/koolproxy/firewall.include b/files/usr/share/koolproxy/firewall.include
+deleted file mode 100755
+index 019dc30..0000000
+--- a/files/usr/share/koolproxy/firewall.include
++++ /dev/null
+@@ -1,4 +0,0 @@
+-#!/bin/sh
+-# koolproxy integration for firewall3
+-
+-/etc/init.d/koolproxy reload
+diff --git a/files/usr/share/koolproxy/koolproxyupdate b/files/usr/share/koolproxy/koolproxyupdate
+deleted file mode 100755
+index 54d11d8..0000000
+--- a/files/usr/share/koolproxy/koolproxyupdate
++++ /dev/null
+@@ -1,218 +0,0 @@
+-#!/bin/sh
+-# set -x
+-
+-. /lib/functions.sh
+-
+-# 初始化变量
+-APPNAME="koolproxy"
+-
+-CONFIG=koolproxy
+-TEMPPATH=/tmp/$APPNAME
+-DATAPATH=/usr/share/koolproxy/data
+-RULEPATH=$DATAPATH/rules
+-LOGFILE="/var/log/$APPNAME.log"
+-
+-config_t_get() {
+-	local index=0
+-	[ -n "$4" ] && index=$4
+-	local ret=$(uci get $CONFIG.@$1[$index].$2 2>/dev/null)
+-	echo ${ret:=$3}
+-}
+-
+-Reduce_Log(){
+-	local log=$1
+-	[ ! -f "$log" ] && return
+-	local sc=100
+-	[ -n "$2" ] && sc=$2
+-	local count=$(grep -c "" $log)
+-	if [ $count -gt $sc ];then
+-		let count=count-$sc
+-		sed -i "1,$count d" $log
+-	fi
+-}
+-
+-InitEnv()
+-{
+-	rm -rf "$TEMPPATH"
+-	mkdir -p "$TEMPPATH"
+-}
+-
+-RestartApp()
+-{
+-	/etc/init.d/koolproxy stop
+-	sleep 1
+-	/etc/init.d/koolproxy start
+-}
+-
+-CompareFile()
+-{
+-	local descript=$1
+-	local localPath=$2
+-	local remoteUrl=$3
+-
+-	echo $(date "+%F %T"): ------------------- $descript更新 ------------------- >>$LOGFILE
+-	local filename=`basename $localPath`
+-	local remotePath="$TEMPPATH/$filename"
+-	wget-ssl -qT5 --no-check-certificate "$remoteUrl" -O "$remotePath"
+-	if [ "$?" == "0" ]; then
+-		if [ -f "$localPath" ]; then
+-			localMD5=`md5sum "$localPath" | awk '{print $1}'`
+-			localNum=`cat "$localPath" | grep -v '^!' | wc -l`
+-		else
+-			localMD5="文件不存在"
+-			localNum="0"
+-		fi
+-		remoteMD5=`md5sum "$remotePath" | awk '{print $1}'`
+-		remoteNum=`cat "$remotePath" | grep -v '^!' | wc -l`
+-
+-		echo $(date "+%F %T"): 本地版本MD5：$localMD5 >>$LOGFILE
+-		echo $(date "+%F %T"): 本地版本条数：$localNum >>$LOGFILE
+-		echo >>$LOGFILE
+-		echo $(date "+%F %T"): 在线版本MD5：$remoteMD5 >>$LOGFILE
+-		echo $(date "+%F %T"): 在线版本条数：$remoteNum >>$LOGFILE
+-		echo >>$LOGFILE
+-
+-		if [ "$localMD5" != "$remoteMD5" ];then
+-			echo $(date "+%F %T"): 检测到更新，开始更新规则！ >>$LOGFILE
+-			mv -f "$remotePath" "$localPath"
+-			echo $(date "+%F %T"): 更新成功！ >>$LOGFILE
+-			echo >>$LOGFILE
+-			return 0
+-		fi
+-	else
+-		echo "$(date "+%F %T"): 获取在线版本时出现错误! " >>$LOGFILE
+-		echo >>$LOGFILE
+-	fi
+-	return 1
+-}
+-
+-update_exrule(){
+-	local name
+-	local file
+-	local exrule
+-	local enable
+-	config_get name $1 name
+-	config_get file $1 file
+-	config_get exrule $1 url
+-	config_get enable $1 load
+-	if [ -n "$file" ] && [ -n "$exrule" ]; then
+-		if [ $enable -ne 1 ]; then
+-			return
+-		fi
+-		CompareFile "$name" "$RULEPATH/$file" "$exrule"
+-		if [ "$?" == "0" ]; then
+-			uci set koolproxy.$1.time="`date +%Y-%m-%d" "%H:%M`"
+-			uci commit koolproxy
+-		fi
+-		cat $RULEPATH/$file >>$RULEPATH/user.txt
+-		echo >>$LOGFILE
+-	fi
+-}
+-
+-UpdateRule(){
+-	cp $DATAPATH/user.txt $RULEPATH/user.txt
+-	config_load $CONFIG
+-	config_foreach update_exrule rss_rule
+-}
+-
+-UpdateHost()
+-{
+-	/usr/sbin/adblockplus >>$LOGFILE 2>&1 &
+-	echo >>$LOGFILE
+-}
+-
+-UpdateApp()
+-{
+-	for a in $(opkg print-architecture | awk '{print $2}'); do
+-		case "$a" in
+-			all|noarch)
+-				;;
+-			aarch64_armv8-a|arm_arm1176jzf-s_vfp|arm_arm926ej-s|arm_cortex-a15_neon-vfpv4|arm_cortex-a5|arm_cortex-a53_neon-vfpv4|arm_cortex-a7_neon-vfpv4|arm_cortex-a8_vfpv3|arm_cortex-a9|arm_cortex-a9_neon|arm_cortex-a9_vfpv3|arm_fa526|arm_mpcore|arm_mpcore_vfp|arm_xscale|armeb_xscale)
+-				ARCH="arm"
+-				;;
+-			i386_pentium|i386_pentium4)
+-				ARCH="i386"
+-				;;
+-			ar71xx|mips_24kc|mips_mips32|mips64_octeon)
+-				ARCH="mips"
+-				;;
+-			mipsel_24kc|mipsel_24kec_dsp|mipsel_74kc|mipsel_mips32|mipsel_1004kc_dsp)
+-				ARCH="mipsel"
+-				;;
+-			x86_64)
+-				ARCH="x86_64"
+-				;;
+-			*)
+-				echo $(date "+%F %T"): Architectures $a not support >>$LOGFILE
+-				exit 0
+-				;;
+-		esac
+-	done
+-
+-	echo $(date "+%F %T"): Target Arch: $ARCH >>$LOGFILE
+-
+-	wget -qT5 "http://firmware.koolshare.cn/binary/KoolProxy/$ARCH" -O $TEMPPATH/koolproxy
+-	ret=$?
+-	if [ "$ret" != "0" ]; then
+-		echo "$(date "+%F %T"): 获取程序在线版本时出现错误! " >>$LOGFILE
+-		echo >>$LOGFILE
+-		return $ret
+-	fi
+-	chmod +x $TEMPPATH/koolproxy
+-
+-	old_version=`/usr/share/koolproxy/koolproxy -v`
+-	new_version=`$TEMPPATH/koolproxy -v`
+-
+-	echo $(date "+%F %T"): ---------------------------------------------------- >>$LOGFILE
+-	if [ "$old_version" != "$new_version" ]; then
+-		mv $TEMPPATH/koolproxy /usr/share/koolproxy/koolproxy
+-		echo $(date "+%F %T"): koolproxy $new_version 更新成功！ >>$LOGFILE
+-	else
+-		rm -f $TEMPPATH/koolproxy
+-		echo $(date "+%F %T"): koolproxy $old_version 本地已经是最新版本，无需更新！ >>$LOGFILE
+-	fi
+-	echo >>$LOGFILE
+-}
+-
+-# 程序主体
+-InitEnv
+-Reduce_Log $LOGFILE
+-#version="$TEMPPATH/version"
+-#wget-ssl -qT5 --no-check-certificate "$SERVERURL/version" -O "$version"
+-#if [ "$?" == "0" ]; then
+-#	CompareFile "静态规则" "/usr/share/koolproxy/data/koolproxy.txt" "$SERVERURL/koolproxy.txt" "$(cat "$version" | awk 'NR==2{print}')"
+-#	r1=$?
+-#	CompareFile "视频规则" "/usr/share/koolproxy/data/1.dat" "$SERVERURL/1.dat" "$(cat "$version" | awk 'NR==4{print}')"
+-#	r2=$?
+-#	echo $(date "+%F %T"): ---------------------------------------------------- >>$LOGFILE
+-#	if [ $r1 -eq 0 ] || [ $r2 -eq 0 ]; then
+-#		echo $(date "+%F %T"): 正在自动重启使更新内容生效，请稍后！ >>$LOGFILE
+-#		RestartApp
+-#		echo $(date "+%F %T"): 重启成功！ >>$LOGFILE
+-#	else
+-#		echo $(date "+%F %T"): 本地已经是最新版本，无需更新！ >>$LOGFILE
+-#	fi
+-#	echo >>$LOGFILE
+-#else
+-#	echo $(date "+%F %T"): 获取在线版本时出现错误，请检查你的网络环境！ >>$LOGFILE
+-#fi
+-
+-#if [ "$1" == "rules" ]; then
+-#	UpdateRule
+-#	RestartApp
+-#
+-#	UpdateHost
+-#elif [ "$1" == "binary" ]; then
+-#	UpdateApp
+-#	RestartApp
+-#else
+-#	UpdateApp
+-#	UpdateRule
+-#	RestartApp
+-#
+-#	UpdateHost
+-#fi
+-UpdateRule
+-RestartApp
+-UpdateHost
+-InitEnv
+diff --git a/files/usr/share/koolproxy/kpupdate b/files/usr/share/koolproxy/kpupdate
+new file mode 100755
+index 0000000..6b66509
+--- /dev/null
++++ b/files/usr/share/koolproxy/kpupdate
+@@ -0,0 +1,141 @@
++#!/bin/sh
++# set -x
++
++. /lib/functions.sh
++
++CONFIG=koolproxy
++KP_DIR=/usr/share/koolproxy
++TMP_DIR=/tmp/koolproxy
++LOGFILE="/var/log/koolproxy.log"
++
++config_t_get() {
++	local index=0
++	[ -n "$4" ] && index=$4
++	local ret=$(uci get $CONFIG.@$1[$index].$2 2>/dev/null)
++	echo ${ret:=$3}
++}
++
++limit_log() {
++	local log=$1
++	[ ! -f "$log" ] && return
++	local sc=100
++	[ -n "$2" ] && sc=$2
++	local count=$(grep -c "" $log)
++	if [ $count -gt $sc ];then
++		let count=count-$sc
++		sed -i "1,$count d" $log
++	fi
++}
++
++init_env() {
++	rm -rf "$TMP_DIR"
++	mkdir -p "$TMP_DIR"
++}
++
++restart_koolproxy() {
++	/etc/init.d/koolproxy restart
++}
++
++__compare_file() {
++	local descript=$1
++	local localPath=$2
++	local remoteUrl=$3
++
++	echo $(date "+%F %T"): ------------------- $descript更新 ------------------- >>$LOGFILE
++	local filename=`basename $localPath`
++	local remotePath="$TEMPPATH/$filename"
++	wget-ssl -qT5 --no-check-certificate "$remoteUrl" -O "$remotePath"
++	if [ "$?" == "0" ]; then
++		if [ -f "$localPath" ]; then
++			localMD5=`md5sum "$localPath" | awk '{print $1}'`
++			localNum=`cat "$localPath" | grep -v '^!' | wc -l`
++		else
++			localMD5="文件不存在"
++			localNum="0"
++		fi
++		remoteMD5=`md5sum "$remotePath" | awk '{print $1}'`
++		remoteNum=`cat "$remotePath" | grep -v '^!' | wc -l`
++
++		echo $(date "+%F %T"): 本地版本MD5：$localMD5 >>$LOGFILE
++		echo $(date "+%F %T"): 本地版本条数：$localNum >>$LOGFILE
++		echo >>$LOGFILE
++		echo $(date "+%F %T"): 在线版本MD5：$remoteMD5 >>$LOGFILE
++		echo $(date "+%F %T"): 在线版本条数：$remoteNum >>$LOGFILE
++		echo >>$LOGFILE
++
++		if [ "$localMD5" != "$remoteMD5" ];then
++			echo $(date "+%F %T"): 检测到更新，开始更新规则！ >>$LOGFILE
++			mv -f "$remotePath" "$localPath"
++			echo $(date "+%F %T"): 更新成功！ >>$LOGFILE
++			echo >>$LOGFILE
++			return 0
++		fi
++	else
++		echo "$(date "+%F %T"): 获取在线版本时出现错误! " >>$LOGFILE
++		echo >>$LOGFILE
++	fi
++	return 1
++}
++
++__update_rule() {
++	local name
++	local file
++	local exrule
++	local enable
++	config_get name $1 name
++	config_get file $1 file
++	config_get exrule $1 url
++	config_get enable $1 load
++	if [ -n "$file" ] && [ -n "$exrule" ]; then
++		if [ $enable -ne 1 ]; then
++			return
++		fi
++		__compare_file "$name" "$KP_DIR/data/rule/$file" "$exrule"
++		if [ "$?" == "0" ]; then
++			uci set koolproxy.$1.time="`date +%Y-%m-%d" "%H:%M`"
++			uci commit koolproxy
++			RESTART_KOOLPROXY=true
++		fi
++		cat $KP_DIR/data/rule/$file >>$KP_DIR/data/rule/user.txt
++		echo >>$LOGFILE
++	fi
++}
++
++update_rss_rules() {
++	cp $KP_DIR/data/user.txt $KP_DIR/data/rule/user.txt
++	config_load $CONFIG
++	config_foreach __update_rule rss_rule
++}
++
++update_adb_host() {
++	/usr/sbin/adblockplus >>$LOGFILE 2>&1 &
++	if [ "$?" == "0" ]; then
++		RESTART_DNSMASQ=true
++	fi
++	echo >>$LOGFILE
++}
++
++# main process
++init_env
++limit_log $LOGFILE
++
++# update user rules
++update_rss_rules
++
++koolproxy_mode=$(config_t_get global koolproxy_mode 1)
++koolproxy_host=$(config_t_get global koolproxy_host 0)
++
++# update ADB Plus Host
++if [ "$koolproxy_mode" == "2" ] && [ "$koolproxy_host" == "1" ];then
++	update_adb_host
++fi
++
++if [ $RESTART_KOOLPROXY ]; then
++	restart_koolproxy
++	echo $(date "+%F %T"): 重启koolproxy进程 >>$LOGFILE
++else [ $RESTART_DNSMASQ ]; then
++	echo $(date "+%F %T"): 重启dnsmasq进程 >>$LOGFILE
++	/etc/init.d/dnsmasq restart > /dev/null 2>&1
++fi
++
++init_env
