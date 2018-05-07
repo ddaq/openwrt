@@ -63,42 +63,46 @@ end
 
 s:tab("domain", translate("Extra Domain List"))
 
-conf1 = s:taboption("domain", Value, "editconf1", nil, translate("User GFW Domain List File"))
-conf1.template = "cbi/tvalue"
-conf1.rows = 20
-conf1.wrap = "off"
-conf1:depends({mode="gfwlist"})
-function conf1.cfgvalue(self, section)
+gfwlist = s:taboption("domain", Value, "gfwlist", nil, translate("User GFW Domain List File"))
+gfwlist.template = "cbi/tvalue"
+gfwlist.rows = 28
+gfwlist.wrap = "off"
+gfwlist:depends({mode="gfwlist"})
+function gfwlist.cfgvalue(self, section)
 	return fs.readfile("/usr/share/domainlist/user-gfwlist.txt") or ""
 end
-function conf1.write(self, section, value)
+function gfwlist.write(self, section, value)
 	if value then
-		value = value:gsub("\r\n?", "\n")
-		fs.writefile("/tmp/user-gfwlist.txt", value)
-		if (luci.sys.call("cmp -s /tmp/user-gfwlist.txt /usr/share/domainlist/user-gfwlist.txt") == 1) then
-			fs.writefile("/usr/share/domainlist/user-gfwlist.txt", value)
-		end
-		fs.remove("/tmp/user-gfwlist.txt")
+		value = value:gsub("\r\n", "\n")
+	else
+		value = ""
 	end
+	fs.writefile("/tmp/user-gfwlist.txt", value)
+	if (luci.sys.call("cmp -s /tmp/user-gfwlist.txt /usr/share/domainlist/user-gfwlist.txt") == 1) then
+		fs.writefile("/usr/share/domainlist/user-gfwlist.txt", value)
+	end
+	fs.remove("/tmp/user-gfwlist.txt")
 end
 
-conf2 = s:taboption("domain", Value, "editconf2", nil, translate("User China Domain List File"))
-conf2.template = "cbi/tvalue"
-conf2.rows = 20
-conf2.wrap = "off"
-conf2:depends({mode="chinalist"})
-function conf2.cfgvalue(self, section)
+chnlist = s:taboption("domain", Value, "chinalist", nil, translate("User China Domain List File"))
+chnlist.template = "cbi/tvalue"
+chnlist.rows = 28
+chnlist.wrap = "off"
+chnlist:depends({mode="chinalist"})
+function chnlist.cfgvalue(self, section)
 	return fs.readfile("/usr/share/domainlist/user-chinalist.txt") or ""
 end
-function conf2.write(self, section, value)
+function chnlist.write(self, section, value)
 	if value then
-		value = value:gsub("\r\n?", "\n")
-		fs.writefile("/tmp/user-chinalist.txt", value)
-		if (luci.sys.call("cmp -s /tmp/user-chinalist.txt /usr/share/domainlist/user-chinalist.txt") == 1) then
-			fs.writefile("/usr/share/domainlist/user-chinalist.txt", value)
-		end
-		fs.remove("/tmp/user-chinalist.txt")
+		value = value:gsub("\r\n", "\n")
+	else
+		value = ""
 	end
+	fs.writefile("/tmp/user-chinalist.txt", value)
+	if (luci.sys.call("cmp -s /tmp/user-chinalist.txt /usr/share/domainlist/user-chinalist.txt") == 1) then
+		fs.writefile("/usr/share/domainlist/user-chinalist.txt", value)
+	end
+	fs.remove("/tmp/user-chinalist.txt")
 end
 
 return m

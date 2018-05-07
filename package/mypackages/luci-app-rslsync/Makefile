@@ -10,6 +10,8 @@ PKG_LICENSE_FILES:=LICENSE
 
 PKG_BUILD_PARALLEL:=1
 
+RSTRIP:=true
+
 include $(INCLUDE_DIR)/package.mk
 
 define Package/$(PKG_NAME)/Default
