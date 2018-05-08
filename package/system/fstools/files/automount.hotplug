@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set_fstab(){
+set_fstab() {
 
 	my_fstype="`block info | grep "/dev/$device" | awk -F 'TYPE="' '{print $2}' | sed 's/\"//'`"
 
@@ -62,6 +62,33 @@ set_fstab(){
 		uci commit fstab
 	}
 }
+
+dev_filter() { # <devname> <[path,/dev/]>
+	case $1 in
+	${2}mtdblock*|\
+	${2}ubi*)
+		FLAG_DEV_TYPE="mtd"
+		;;
+	${2}loop*|\
+	${2}mmcblk*|\
+	${2}sd*|\
+	${2}hd*|\
+	${2}md*|\
+	${2}nvme*|\
+	${2}vd*|\
+	${2}xvd*)
+		FLAG_DEV_TYPE="not-mtd"
+		;;
+	*)
+		[ -b ${2}${1} ] && FLAG_DEV_TYPE="not-mtd"
+		[ -b /dev/mapper/$1 ] && FLAG_DEV_TYPE="not-mtd"
+		;;
+	esac
+}
+
+
+dev_filter $DEVNAME
+[ "$FLAG_DEV_TYPE" = "not-mtd" ]  || exit
 
 blkdev=`dirname $DEVPATH`
 if [ `basename $blkdev` != "block" ]; then
