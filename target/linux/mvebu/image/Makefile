@@ -120,9 +120,9 @@ TARGET_DEVICES += linksys-wrt3200acm
 
 define Device/linksys-wrt32x
   $(call Device/linksys,WRT32X (Venom))
-  $(Device/NAND-128K)
-  $(Device/UBI-factory)
+  $(Device/armada-385-linksys)
   KERNEL_SIZE := 3072k
+  KERNEL := kernel-bin | append-dtb
   DEVICE_DTS := armada-385-linksys-venom
   DEVICE_PACKAGES += kmod-mwifiex-sdio
 endef
