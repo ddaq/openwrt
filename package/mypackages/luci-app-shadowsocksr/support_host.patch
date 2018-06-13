@@ -1,0 +1,41 @@
+diff --git a/Makefile b/Makefile
+index 24a7b54..70c3f1a 100644
+--- a/Makefile
++++ b/Makefile
+@@ -26,7 +26,7 @@ define Package/luci-app-shadowsocksr/Default
+ 	SUBMENU:=3. Applications
+ 	TITLE:=LuCI Support for shadowsocksr-libev
+ 	PKGARCH:=all
+-	DEPENDS:=+iptables $(1)
++	DEPENDS:=+iptables +iptables-mod-extra +kmod-ipt-extra $(1)
+ endef
+ 
+ Package/luci-app-shadowsocksr = $(call Package/luci-app-shadowsocksr/Default,+ipset)
+diff --git a/files/root/usr/bin/ss-rules b/files/root/usr/bin/ss-rules
+index 254aa62..6d32906 100644
+--- a/files/root/usr/bin/ss-rules
++++ b/files/root/usr/bin/ss-rules
+@@ -84,6 +84,9 @@ ipt_nat() {
+ 		$ipt -N SS_SPEC_WAN_DG
+ 		$ipt -A SS_SPEC_WAN_DG -m set --match-set ss_spec_dst_sp dst -j RETURN
+ 		$ipt -A SS_SPEC_WAN_DG -p tcp $EXT_ARGS -j $OUTPUT
++		for file in /var/run/ss-redir*.pid; do
++			$ipt -I OUTPUT -m owner --pid_owner $(cat $file) -j RETURN
++		done
+ 		$ipt -I OUTPUT 1 -p tcp -j SS_SPEC_WAN_DG
+ 		gen_lan_host_output_acl
+ 	fi
+diff --git a/files/root/usr/bin/ss-rules-without-ipset b/files/root/usr/bin/ss-rules-without-ipset
+index e1b1808..7c114e2 100644
+--- a/files/root/usr/bin/ss-rules-without-ipset
++++ b/files/root/usr/bin/ss-rules-without-ipset
+@@ -62,6 +62,9 @@ ipt_nat() {
+ 	$ipt -A SS_SPEC_WAN_FW -p tcp \
+ 		-j REDIRECT --to-ports $local_port || return 1
+ 	if [ -n "$OUTPUT" ]; then
++		for file in /var/run/ss-redir*.pid; do
++			$ipt -I OUTPUT -m owner --pid_owner $(cat $file) -j RETURN
++		done
+ 		iptables-restore -n <<-EOF
+ 		*nat
+ 		:SS_SPEC_WAN_DG - [0:0]

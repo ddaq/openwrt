@@ -1,0 +1,11 @@
+#!/bin/sh
+
+uci -q batch <<-EOF >/dev/null
+	delete ucitrack.@tracker-rss[-1]
+	add ucitrack tracker-rss
+	set ucitrack.@tracker-rss[-1].init=tracker-rss
+	commit ucitrack
+EOF
+
+rm -f /tmp/luci-indexcache
+exit 0

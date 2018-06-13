@@ -1,0 +1,57 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "%u seconds"
+msgstr "%u 秒"
+
+msgid "Enable"
+msgstr "启用"
+
+msgid "General Setting"
+msgstr "基本设置"
+
+msgid "HAProxy-TCP"
+msgstr "负载均衡-TCP"
+
+msgid "Listen Address:Port"
+msgstr "服务地址"
+
+msgid "Retries"
+msgstr "重试次数"
+
+msgid "Status Admin"
+msgstr "状态管理"
+
+msgid "Startup Delay"
+msgstr "自启动延时"
+
+msgid "Port"
+msgstr "端口"
+
+msgid "Timeout Connect (ms)"
+msgstr "连接超时 (毫秒)"
+
+msgid "Main Server List"
+msgstr "主服务器列表"
+
+msgid "Display Name"
+msgstr "服务器名称"
+
+msgid "Only English Characters,No spaces"
+msgstr "仅限英文字母,不要有空格"
+
+msgid "Proxy Server"
+msgstr "代理服务器"
+
+msgid "Proxy Server Port"
+msgstr "代理服务器端口"
+
+msgid "Weight"
+msgstr "分流权重"
+
+msgid "Backup Server List"
+msgstr "备用服务器列表"
+
+msgid "validate"
+msgstr "生效"
+

@@ -1,0 +1,37 @@
+msgid ""
+msgstr ""
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Tracker RSS"
+msgstr "Tracker订阅"
+
+msgid "Basic Setting"
+msgstr "基本配置"
+
+msgid "Enable"
+msgstr "启用"
+
+msgid "Auto Update"
+msgstr "自动更新"
+
+msgid "Manually force update<br />Tracker List"
+msgstr "手动强制更新<br />Tracker List"
+
+msgid "Update manually"
+msgstr "手动更新"
+
+msgid "RSS Setting Lists"
+msgstr "订阅设置列表"
+
+msgid "Application Name"
+msgstr "应用名称"
+
+msgid "Tracker Lists"
+msgstr "Tracker列表"
+
+msgid "Update Time"
+msgstr "更新时间"

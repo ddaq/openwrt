@@ -1,0 +1,47 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+CONFIG=tracker-rss
+
+config_t_get() {
+	local index=0
+	[ -n "$4" ] && index=$4
+	local ret=$(uci get $CONFIG.@$1[$index].$2 2>/dev/null)
+	echo ${ret:=$3}
+}
+
+add_tracker() {
+	local name
+	local enabled
+	local tracker_lists
+	config_get name $1 name
+	config_get enabled $1 enabled
+	config_get tracker_lists $1 tracker_lists
+
+	[ $enabled -ne 1 ] && exit 0
+
+	url="https://raw.githubusercontent.com/ngosang/trackerslist/master/${trackers_list}.txt"
+	if [ "$name" == "aria2" ]; then
+		aria2_add_tracker.sh $url
+	else
+		trans_add_tracker.sh . $url
+	fi
+	if [ "$?" == "0" ]; then
+		uci set tracker-rss.$1.time="`date +%Y-%m-%d" "%H:%M`"
+		uci commit tracker-rss
+	fi
+	if [ "$name" == "aria2" ]; then
+		/etc/init.d/aria2 restart 2>&1 >/dev/null
+	fi
+}
+
+process()
+{
+	config_load $CONFIG
+	config_foreach add_tracker rss_lists
+}
+
+process
+
+exit 0

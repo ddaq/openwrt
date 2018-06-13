@@ -1,0 +1,55 @@
+#!/bin/sh /etc/rc.common
+# Copyright (c) 2011-2015 OpenWrt.org
+
+START=95
+STOP=15
+
+get_config() {
+	config_get_bool enable $1 enable 0
+	config_get local_port $1 local_port
+	config_get remote_ip $1 remote_ip
+	config_get remote_port $1 remote_port
+	config_get_bool allow_wan $1 allow_wan 0
+}
+
+start() {
+	config_load mproxy
+	config_foreach get_config mproxy
+	[ $enable -eq 0 ] && exit 0
+
+	service_start /usr/bin/mproxy -T -l $local_port -h $remote_ip:$remote_port -d
+
+	uci get firewall.Allow_Mproxy_Inbound.name
+	if [ $? -eq 1 ]; then
+		uci set firewall.Allow_Mproxy_Inbound.name='Allow_Mproxy_Inbound'
+		uci set firewall.Allow_Mproxy_Inbound=rule
+		uci set firewall.Allow_Mproxy_Inbound.target=ACCEPT
+		uci set firewall.Allow_Mproxy_Inbound.src=*
+		uci set firewall.Allow_Mproxy_Inbound.proto=tcp
+		uci set firewall.Allow_Mproxy_Inbound.dest_port=$local_port
+		uci set firewall.Allow_Mproxy_Inbound.enabled=0
+	fi
+
+	if [ $allow_wan -eq 1 ]; then
+		uci delete firewall.Allow_Mproxy_Inbound.enabled
+	else
+		uci set firewall.Allow_Mproxy_Inbound.enabled=0
+	fi
+
+	uci commit firewall
+
+	fw3 restart
+
+	echo "mproxy has started."
+}
+
+stop() {
+	uci set firewall.Allow_Mproxy_Inbound.enabled=0
+	uci commit firewall
+
+	fw3 restart
+
+	service_stop /usr/bin/mproxy
+
+	echo "mproxy has stopped."
+}

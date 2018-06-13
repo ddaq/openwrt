@@ -1,0 +1,40 @@
+#!/bin/sh
+
+#set -e -o pipefail
+
+. /lib/functions.sh
+
+CONFIG=chnroute
+
+get_config()
+{
+	config_get FILE $1 file
+}
+
+process()
+{
+	config_load $CONFIG
+	config_foreach get_config $CONFIG
+
+	wget --quiet 'http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' -O /tmp/ignore.list
+	if [ $? = 0 ]; then
+		awk -F\| '/CN\|ipv4/ { printf("%s/%d\n", $4, 32-log($5)/log(2)) }' /tmp/ignore.list > /tmp/chnroute.list
+		rm -f /tmp/ignore.list
+		[ ! -f $FILE ] && mv /tmp/chnroute.list $FILE && return 0
+		diff /tmp/chnroute.list $FILE >/dev/null
+		[ $? = 0 ] && rm -f /tmp/chnroute.list && return 1
+		mv /tmp/chnroute.list $FILE
+		return 0
+	else
+		[ -f /tmp/ignore.txt ] && rm -f /tmp/ignore.txt
+		return 1
+	fi
+}
+
+process
+[ $? != 0 ] && exit 0
+if pidof ss-redir>/dev/null; then
+	/etc/init.d/shadowsocks rules
+fi
+
+exit 0

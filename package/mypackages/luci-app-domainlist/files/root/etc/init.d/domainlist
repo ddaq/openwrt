@@ -1,0 +1,81 @@
+#!/bin/sh /etc/rc.common
+
+START=93
+#STOP=15
+CONFIG=domainlist
+PROG=/usr/share/domainlist/domainlistupdate
+
+GFWLIST_FILE=/etc/domainlist/gfwlist.conf
+CHINALIST_FILE=/etc/domainlist/chinalist.conf
+
+get_config() {
+	config_get_bool ENABLED $1 enabled 0
+	config_get DOMAIN_MODE $1 mode
+}
+
+add_cron() {
+	time=$(uci get domainlist.config.time_update)
+	wirtecron=$(cat /etc/crontabs/root | grep "00 $time * * *" | grep domainlist)
+	if [ -z "$wirtecron" ];then
+		sed -i '/domainlistupdate/d' /etc/crontabs/root >/dev/null 2>&1
+		echo "0 $time * * * $PROG" >> /etc/crontabs/root 
+	fi
+}
+
+del_cron() {
+	sed -i '/domainlistupdate/d' /etc/crontabs/root >/dev/null 2>&1
+}
+
+add_dns()
+{
+	mkdir -p /var/etc/dnsmasq-domainlist.d
+	mkdir -p /tmp/dnsmasq.d
+	cat > /tmp/dnsmasq.d/dnsmasq-domainlist.conf <<EOF
+conf-dir=/var/etc/dnsmasq-domainlist.d
+EOF
+
+	if [ "$DOMAIN_MODE" == "gfwlist" ]; then
+		rm -rf /var/etc/dnsmasq-domainlist.d/gfwlist.conf
+		ln -sf $GFWLIST_FILE /var/etc/dnsmasq-domainlist.d/gfwlist.conf
+	else
+		rm -rf /var/etc/dnsmasq-domainlist.d/chinalist.conf
+		ln -sf $CHINALIST_FILE /var/etc/dnsmasq-domainlist.d/chinalist.conf
+	fi
+}
+
+del_dns()
+{
+	rm -f /tmp/dnsmasq.d/dnsmasq-domainlist.conf
+	rm -rf /var/etc/dnsmasq-domainlist.d
+}
+
+restart_dnsmasq()
+{
+	/etc/init.d/dnsmasq restart >/dev/null 2>&1
+}
+
+start() {
+	config_load $CONFIG
+	config_foreach get_config $CONFIG
+	[ $ENABLED -ne 1 ] && exit 0
+
+	add_cron
+	/usr/share/domainlist/domainlistupdate 2>&1 >/dev/null
+	add_dns
+	restart_dnsmasq
+}
+
+stop() {
+	del_cron
+	del_dns
+	if [ ! $NO_RESTART_DNSMASQ ]; then
+		restart_dnsmasq
+	fi
+}
+
+restart() {
+	NO_RESTART_DNSMASQ=true
+	stop
+        sleep 1
+	start
+}

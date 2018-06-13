@@ -1,0 +1,153 @@
+diff --git a/files/luci/i18n/haproxy-tcp.zh-cn.po b/files/luci/i18n/haproxy-tcp.zh-cn.po
+index 0c2d3eb..0db4ce5 100644
+--- a/files/luci/i18n/haproxy-tcp.zh-cn.po
++++ b/files/luci/i18n/haproxy-tcp.zh-cn.po
+@@ -31,5 +31,27 @@ msgstr "端口"
+ msgid "Timeout Connect (ms)"
+ msgstr "连接超时 (毫秒)"
+ 
+-msgid "UpStream Server"
+-msgstr "上游服务器"
++msgid "Main Server List"
++msgstr "主服务器列表"
++
++msgid "Display Name"
++msgstr "服务器名称"
++
++msgid "Only English Characters,No spaces"
++msgstr "仅限英文字母,不要有空格"
++
++msgid "Proxy Server"
++msgstr "代理服务器"
++
++msgid "Proxy Server Port"
++msgstr "代理服务器端口"
++
++msgid "Weight"
++msgstr "分流权重"
++
++msgid "Backup Server List"
++msgstr "备用服务器列表"
++
++msgid "validate"
++msgstr "生效"
++
+diff --git a/files/luci/model/cbi/haproxy-tcp.lua b/files/luci/model/cbi/haproxy-tcp.lua
+index 4bfdb8d..fdeea09 100644
+--- a/files/luci/model/cbi/haproxy-tcp.lua
++++ b/files/luci/model/cbi/haproxy-tcp.lua
+@@ -49,9 +49,37 @@ o.default     = "1"
+ o.datatype    = "range(1, 10)"
+ o.rmempty     = false
+ 
++s = m:section(TypedSection, "main_server", translate("Main Server List"))
++s.anonymous = true
++s.addremove = true
+ 
+-o = s:option(DynamicList, "upstreams", translate("UpStream Server"), translate("e.g. [8.8.8.8:53 weight 100]"))
+-o.placeholder = "8.8.8.8:53"
+-o.rmempty     = false
++o = s:option(Value, "server_name", translate("Display Name"), translate("Only English Characters,No spaces"))
++o.rmempty = false
++
++o=s:option(Flag, "validate", translate("validate"))
++
++o = s:option(Value, "server", translate("Proxy Server"))
++o.datatype = "host"
++
++o = s:option(Value, "server_port", translate("Proxy Server Port"))
++o.datatype = "uinteger"
++
++o = s:option(Value, "server_weight", translate("Weight"))
++o.datatype = "uinteger"
++
++s = m:section(TypedSection, "backup_server", translate("Backup Server List"))
++s.anonymous = true
++s.addremove = true
++
++o = s:option(Value, "server_name", translate("Display Name"), translate("Only English Characters,No spaces"))
++o.rmempty = false
++
++o = s:option(Flag, "validate", translate("validate"))
++
++o = s:option(Value, "server", translate("Proxy Server"))
++o.datatype = "host"
++
++o = s:option(Value, "server_port", translate("Proxy Server Port"))
++o.datatype = "uinteger"
+ 
+ return m
+diff --git a/files/root/etc/init.d/haproxy-tcp b/files/root/etc/init.d/haproxy-tcp
+index 1d978e3..44c7ccd 100644
+--- a/files/root/etc/init.d/haproxy-tcp
++++ b/files/root/etc/init.d/haproxy-tcp
+@@ -3,11 +3,35 @@
+ START=85
+ NAME=haproxy-tcp
+ 
+-genline_srv(){
+-	line="$1"
+-	hash="$(echo -n $line | md5sum | cut -c1-6)"
+-	hash="$(echo -n $line | tr -d '\t ' | cut -c1-8)__$hash"
+-	echo "    server $hash  $line" | tr -d "\'"
++gen_srv(){
++	for i in `uci show haproxy-tcp | grep =main_server | sed -r 's/.*\[(.*)\].*/\1/'`
++	do
++		local server=`uci get haproxy-tcp.@main_server[$i].server 2>/dev/null`
++		local server_name=`uci get haproxy-tcp.@main_server[$i].server_name 2>/dev/null`
++		local server_port=`uci get haproxy-tcp.@main_server[$i].server_port 2>/dev/null`
++		local server_weight=`uci get haproxy-tcp.@main_server[$i].server_weight 2>/dev/null`
++		local validate=`uci get haproxy-tcp.@main_server[$i].validate 2>/dev/null`
++		if [ -z "$server" ] || [ -z "$server_name" ] || [ -z "$server_port" ] || [ -z "$server_weight" ]; then
++			break
++		fi
++		[ "$validate" = 1 ] && {
++			echo "    "server $server_name $server:$server_port weight $server_weight check inter 1500 rise 3 fall 3
++		}
++	done
++
++	for i in `uci show haproxy-tcp | grep =backup_server | sed -r 's/.*\[(.*)\].*/\1/'`
++	do
++		local server=`uci get haproxy-tcp.@backup_server[$i].server 2>/dev/null`
++		local server_name=`uci get haproxy-tcp.@backup_server[$i].server_name 2>/dev/null`
++		local server_port=`uci get haproxy-tcp.@backup_server[$i].server_port 2>/dev/null`
++		local validate=`uci get haproxy-tcp.@backup_server[$i].validate 2>/dev/null`
++		if [ -z "$server" ] || [ -z "$server_name" ] || [ -z "$server_port" ]; then
++			break
++		fi
++		[ "$validate" = 1 ] && {
++			echo "    "server $server_name $server:$server_port weight 10 check backup inter 1500 rise 3 fall 3
++		}
++	done
+ }
+ 
+ boot() {
+@@ -46,17 +70,8 @@ start() {
+ 	    default_backend tcp-out
+ 
+ 	backend tcp-out
+-		$(	if [ 0 -lt $(grep -c weight /etc/config/$NAME) ]; then
+-				echo "    balance static-rr"
+-				sed -n 's/.*upstreams[\t ]*//p' /etc/config/$NAME |
+-				while read upstream; do
+-					genline_srv "$upstream"
+-				done
+-			else
+-				for upstream in $upstreams; do
+-				genline_srv "$upstream"
+-				done
+-			fi
++		$( echo "    balance static-rr"
++		   gen_srv
+ 		)
+ 
+ EOF
+@@ -65,7 +80,7 @@ EOF
+ }
+ 
+ kill_all() {
+-	kill -9 $(pgrep -f $@) >/dev/null 2>&1
++	kill -9 $(cat /var/run/$@ | tr "\n" " ") >/dev/null 2>&1
+ }
+ 
+ stop() {
