@@ -35,9 +35,11 @@ conf-dir=/var/etc/dnsmasq-domainlist.d
 EOF
 
 	if [ "$DOMAIN_MODE" == "gfwlist" ]; then
-		cp $GFWLIST_FILE /var/etc/dnsmasq-domainlist.d/gfwlist.conf
+		rm -rf /var/etc/dnsmasq-domainlist.d/gfwlist.conf
+		ln -sf $GFWLIST_FILE /var/etc/dnsmasq-domainlist.d/gfwlist.conf
 	else
-		cp $CHINALIST_FILE /var/etc/dnsmasq-domainlist.d/chinalist.conf
+		rm -rf /var/etc/dnsmasq-domainlist.d/chinalist.conf
+		ln -sf $CHINALIST_FILE /var/etc/dnsmasq-domainlist.d/chinalist.conf
 	fi
 }
 
@@ -45,6 +47,11 @@ del_dns()
 {
 	rm -f /tmp/dnsmasq.d/dnsmasq-domainlist.conf
 	rm -rf /var/etc/dnsmasq-domainlist.d
+}
+
+restart_dnsmasq()
+{
+	/etc/init.d/dnsmasq restart >/dev/null 2>&1
 }
 
 start() {
@@ -55,16 +62,19 @@ start() {
 	add_cron
 	/usr/share/domainlist/domainlistupdate 2>&1 >/dev/null
 	add_dns
-	/etc/init.d/dnsmasq restart >/dev/null 2>&1
+	restart_dnsmasq
 }
 
 stop() {
 	del_cron
 	del_dns
-	/etc/init.d/dnsmasq restart >/dev/null 2>&1
+	if [ ! $NO_RESTART_DNSMASQ ]; then
+		restart_dnsmasq
+	fi
 }
 
 restart() {
+	NO_RESTART_DNSMASQ=true
 	stop
         sleep 1
 	start

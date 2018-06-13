@@ -41,8 +41,8 @@ o.default=0
 o.rmempty=false
 --]]
 
-o=s:option(Button,"generate",translate("Manually force update<br />China Routes List"))
-o.inputtitle=translate("Update manually")
+o=s:option(Button,"generate",translate("Manual Update"))
+o.inputtitle=translate("Update List")
 o.inputstyle="reload"
 o.write=function()
 	luci.sys.call("/usr/sbin/chnroute 2>&1 >/dev/null")

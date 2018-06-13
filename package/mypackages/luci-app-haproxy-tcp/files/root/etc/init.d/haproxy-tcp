@@ -1,13 +1,38 @@
 #!/bin/sh /etc/rc.common
 
 START=85
+STOP=15
 NAME=haproxy-tcp
 
-genline_srv(){
-	line="$1"
-	hash="$(echo -n $line | md5sum | cut -c1-6)"
-	hash="$(echo -n $line | tr -d '\t ' | cut -c1-8)__$hash"
-	echo "    server $hash  $line" | tr -d "\'"
+gen_srv(){
+	for i in `uci show haproxy-tcp | grep =main_server | sed -r 's/.*\[(.*)\].*/\1/'`
+	do
+		local server=`uci get haproxy-tcp.@main_server[$i].server 2>/dev/null`
+		local server_name=`uci get haproxy-tcp.@main_server[$i].server_name 2>/dev/null`
+		local server_port=`uci get haproxy-tcp.@main_server[$i].server_port 2>/dev/null`
+		local server_weight=`uci get haproxy-tcp.@main_server[$i].server_weight 2>/dev/null`
+		local validate=`uci get haproxy-tcp.@main_server[$i].validate 2>/dev/null`
+		if [ -z "$server" ] || [ -z "$server_name" ] || [ -z "$server_port" ] || [ -z "$server_weight" ]; then
+			break
+		fi
+		[ "$validate" = 1 ] && {
+			echo "    "server $server_name $server:$server_port weight $server_weight resolvers dns check inter 1500 rise 3 fall 3
+		}
+	done
+
+	for i in `uci show haproxy-tcp | grep =backup_server | sed -r 's/.*\[(.*)\].*/\1/'`
+	do
+		local server=`uci get haproxy-tcp.@backup_server[$i].server 2>/dev/null`
+		local server_name=`uci get haproxy-tcp.@backup_server[$i].server_name 2>/dev/null`
+		local server_port=`uci get haproxy-tcp.@backup_server[$i].server_port 2>/dev/null`
+		local validate=`uci get haproxy-tcp.@backup_server[$i].validate 2>/dev/null`
+		if [ -z "$server" ] || [ -z "$server_name" ] || [ -z "$server_port" ]; then
+			break
+		fi
+		[ "$validate" = 1 ] && {
+			echo "    "server $server_name $server:$server_port weight 10 resolvers dns check backup inter 1500 rise 3 fall 3
+		}
+	done
 }
 
 boot() {
@@ -33,7 +58,9 @@ start() {
 	defaults
 	    mode tcp
 	    retries ${retries:-2}
-	    timeout connect ${timeout:-1000}
+	    timeout connect ${timeout:-1000}ms
+	    timeout client 5s
+	    timeout server 10s
 
 	listen admin_stats
 	    bind 0.0.0.0:${admin_stats:-7777}
@@ -41,22 +68,26 @@ start() {
 	    stats uri /
 	    stats refresh 10s
 
+	resolvers dns
+	    nameserver dns1 114.114.114.114:53
+	    nameserver dns2 114.114.115.115:53
+	    resolve_retries       3
+	    timeout resolve       1s
+	    timeout retry         1s
+	    hold other           30s
+	    hold refused         30s
+	    hold nx              30s
+	    hold timeout         30s
+	    hold valid           10s
+	    hold obsolete        30s
+
 	frontend tcp-in
 	    bind ${listen:-0.0.0.0:6666}
 	    default_backend tcp-out
 
 	backend tcp-out
-		$(	if [ 0 -lt $(grep -c weight /etc/config/$NAME) ]; then
-				echo "    balance static-rr"
-				sed -n 's/.*upstreams[\t ]*//p' /etc/config/$NAME |
-				while read upstream; do
-					genline_srv "$upstream"
-				done
-			else
-				for upstream in $upstreams; do
-				genline_srv "$upstream"
-				done
-			fi
+		$( echo "    balance static-rr"
+		   gen_srv
 		)
 
 EOF
@@ -65,10 +96,14 @@ EOF
 }
 
 kill_all() {
-	kill -9 $(pgrep -f $@) >/dev/null 2>&1
+	kill -9 $(cat /var/run/$@ | tr "\n" " ") >/dev/null 2>&1
 }
 
 stop() {
 	kill_all "$NAME.pid"
 	rm -rf /var/etc/$NAME.cfg
+}
+
+reload () {
+	restart
 }

@@ -49,9 +49,37 @@ o.default     = "1"
 o.datatype    = "range(1, 10)"
 o.rmempty     = false
 
+s = m:section(TypedSection, "main_server", translate("Main Server List"))
+s.anonymous = true
+s.addremove = true
 
-o = s:option(DynamicList, "upstreams", translate("UpStream Server"), translate("e.g. [8.8.8.8:53 weight 100]"))
-o.placeholder = "8.8.8.8:53"
-o.rmempty     = false
+o = s:option(Value, "server_name", translate("Display Name"), translate("Only English Characters,No spaces"))
+o.rmempty = false
+
+o=s:option(Flag, "validate", translate("validate"))
+
+o = s:option(Value, "server", translate("Proxy Server"))
+o.datatype = "host"
+
+o = s:option(Value, "server_port", translate("Proxy Server Port"))
+o.datatype = "uinteger"
+
+o = s:option(Value, "server_weight", translate("Weight"))
+o.datatype = "uinteger"
+
+s = m:section(TypedSection, "backup_server", translate("Backup Server List"))
+s.anonymous = true
+s.addremove = true
+
+o = s:option(Value, "server_name", translate("Display Name"), translate("Only English Characters,No spaces"))
+o.rmempty = false
+
+o = s:option(Flag, "validate", translate("validate"))
+
+o = s:option(Value, "server", translate("Proxy Server"))
+o.datatype = "host"
+
+o = s:option(Value, "server_port", translate("Proxy Server Port"))
+o.datatype = "uinteger"
 
 return m
