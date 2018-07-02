@@ -11,6 +11,7 @@ CHINALIST_FILE=/etc/domainlist/chinalist.conf
 get_config() {
 	config_get_bool ENABLED $1 enabled 0
 	config_get DOMAIN_MODE $1 mode
+	config_get IPSET_NAME $1 ipset
 }
 
 add_cron() {
@@ -49,6 +50,25 @@ del_dns()
 	rm -rf /var/etc/dnsmasq-domainlist.d
 }
 
+ipset_init()
+{
+	if [ -n "$IPSET_NAME" ]; then
+		setname=$(ipset -n list | grep -w "$IPSET_NAME")
+		if [ -z "$setname" ]; then
+			ipset create $IPSET_NAME hash:ip timeout 3600
+		fi
+	fi
+}
+
+ipset_flush()
+{
+	if [ -n "$IPSET_NAME" ]; then
+		for setname in $(ipset -n list | grep "$IPSET_NAME"); do
+			ipset destroy $setname 2>/dev/null
+		done
+	fi
+}
+
 restart_dnsmasq()
 {
 	/etc/init.d/dnsmasq restart >/dev/null 2>&1
@@ -57,10 +77,11 @@ restart_dnsmasq()
 start() {
 	config_load $CONFIG
 	config_foreach get_config $CONFIG
+
 	[ $ENABLED -ne 1 ] && exit 0
 
 	add_cron
-	/usr/share/domainlist/domainlistupdate 2>&1 >/dev/null
+	[ ! $NO_UPDATE_DOMAINLIST ] && /usr/share/domainlist/domainlistupdate 2>&1 >/dev/null
 	add_dns
 	restart_dnsmasq
 }
@@ -68,9 +89,7 @@ start() {
 stop() {
 	del_cron
 	del_dns
-	if [ ! $NO_RESTART_DNSMASQ ]; then
-		restart_dnsmasq
-	fi
+	[ ! $NO_RESTART_DNSMASQ ] && restart_dnsmasq
 }
 
 restart() {
@@ -78,4 +97,10 @@ restart() {
 	stop
         sleep 1
 	start
+}
+
+boot() {
+	NO_UPDATE_DOMAINLIST=true
+	start
+	return 0
 }
