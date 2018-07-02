@@ -53,6 +53,7 @@ flush_rules() {
 	done
 	if [ -n "$WAN_FW_IPSET" ]; then
 		for setname in $(ipset -n list | grep "$WAN_FW_IPSET"); do
+			ipset flush $setname 2>/dev/null
 			ipset destroy $setname 2>/dev/null
 		done
 	fi
@@ -82,7 +83,10 @@ EOF
 
 gen_ipset_ext() {
 	if [ -n "$WAN_FW_IPSET" ]; then
-		echo create ${WAN_FW_IPSET} hash:ip timeout 3600
+		setname=$(ipset -n list | grep -w "$WAN_FW_IPSET")
+		if [ -z "$setname" ]; then
+			echo create ${WAN_FW_IPSET} hash:ip timeout 3600
+		fi
 	fi
 }
 
@@ -232,6 +236,12 @@ gen_prerouting_rules() {
 	done
 }
 
+restart_dnsmasq() {
+	if [ -n "$WAN_FW_IPSET" ]; then
+		/etc/init.d/dnsmasq restart >/dev/null 2>&1
+	fi
+}
+
 while getopts ":s:l:S:L:B:b:W:w:p:I:d:a:A:e:oOuUfh" arg; do
 	case "$arg" in
 		s)
@@ -305,7 +315,7 @@ elif [ "$TPROXY" = 2 ]; then
 	: ${LOCAL_PORT:?"You must assign a port for the udp relay server."}
 fi
 
-flush_rules && ipset_init && ipt_nat && ipt_mangle && export_ipt_rules
+flush_rules && ipset_init && ipt_nat && ipt_mangle && export_ipt_rules && restart_dnsmasq
 RET=$?
 [ "$RET" = 0 ] || loger 3 "Start failed!"
 exit $RET
