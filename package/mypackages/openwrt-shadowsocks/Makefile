@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2014-2017 Jian Chang <aa65535@live.com>
+# Copyright (C) 2014-2018 Jian Chang <aa65535@live.com>
 #
 # This is free software, licensed under the GNU General Public License v3.
 # See /LICENSE for more information.
@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=shadowsocks-libev
-PKG_VERSION:=3.1.3
-PKG_RELEASE:=4
+PKG_VERSION:=3.2.0
+PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/shadowsocks/shadowsocks-libev.git
-PKG_SOURCE_VERSION:=a9d56518bb3e0662e76f60e0ce087a35d6af8323
+PKG_SOURCE_VERSION:=8c98bdecac22b5de7637f82c5db458fd57798a68
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION)
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.xz
 

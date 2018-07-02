@@ -53,8 +53,8 @@ end
 o.default=0
 o.rmempty=false
 
-generate=s:taboption("basic",Button,"generate",translate("Manually force update<br />gfw/china domain list"))
-generate.inputtitle=translate("Update manually")
+generate=s:taboption("basic",Button,"generate",translate("Manual Update"))
+generate.inputtitle=translate("Update List")
 generate.inputstyle="reload"
 generate.write=function()
 	luci.sys.call("/usr/share/domainlist/domainlistupdate 2>&1 >/dev/null")

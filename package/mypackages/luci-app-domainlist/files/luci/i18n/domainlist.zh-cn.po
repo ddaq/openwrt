@@ -27,11 +27,11 @@ msgstr "文件路径"
 msgid "Auto Update"
 msgstr "自动更新"
 
-msgid "Manually force update<br />gfw/china domain list"
-msgstr "手动强制更新<br />gfw/china domain list"
-
-msgid "Update manually"
+msgid "Manual Update"
 msgstr "手动更新"
+
+msgid "Update List"
+msgstr "更新列表"
 
 msgid "Extra Domain List"
 msgstr "自定义域名列表"
