@@ -95,9 +95,7 @@ EOF
 		awk '!/^$/&&!/^#/{printf("ipset=/%s/'"adbyby_wan"'\n",$0)}' $PROG_PATH/adhost.conf > $WAN_FILE
 		cp /usr/share/adbyby/dnsmasq.adblock /var/etc/dnsmasq-adbyby.d/04-dnsmasq.adblock
 	fi
-	sed -i '/mesu.apple.com/d' /etc/dnsmasq.conf
-	[ $block_ios -eq 1 ]
-	echo 'address=/mesu.apple.com/0.0.0.0' >> /etc/dnsmasq.conf
+	sed -i '/mesu.apple.com/d' /etc/dnsmasq.conf && [ $block_ios -eq 1 ] && echo 'address=/mesu.apple.com/0.0.0.0' >> /etc/dnsmasq.conf
 }
 
 del_dns()
@@ -148,6 +146,12 @@ reload_rule()
 	add_rule
 }
 
+restart_dnsmasq()
+{
+	echo "restart dnsmasq"
+	/etc/init.d/dnsmasq restart >/dev/null 2>&1
+}
+
 start()
 {
 	config_load adbyby
@@ -163,8 +167,7 @@ start()
 	add_dns
 	iptables-save | grep ADBYBY >/dev/null || \
 	add_rule
-	echo "restart dnsmasq"
-	/etc/init.d/dnsmasq restart >/dev/null 2>&1
+	restart_dnsmasq
 }
 
 stop()
@@ -179,8 +182,7 @@ stop()
 		kill -9 $pid
 		echo "stop adbyby"
 	fi
-	echo "restart dnsmasq"
-	/etc/init.d/dnsmasq restart >/dev/null 2>&1
+	restart_dnsmasq
 }
 
 restart()

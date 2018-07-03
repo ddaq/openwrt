@@ -42,11 +42,19 @@ EOF
 		rm -rf /var/etc/dnsmasq-domainlist.d/chinalist.conf
 		ln -sf $CHINALIST_FILE /var/etc/dnsmasq-domainlist.d/chinalist.conf
 	fi
+
+	dnsmasq_restart=1
 }
 
 del_dns() {
-	rm -f /tmp/dnsmasq.d/dnsmasq-domainlist.conf
-	rm -rf /var/etc/dnsmasq-domainlist.d
+	if [ -f "/tmp/dnsmasq.d/dnsmasq-domainlist.conf" ]; then
+		rm -rf /tmp/dnsmasq.d/dnsmasq-domainlist.conf
+		dnsmasq_restart=1
+	fi
+	if [ -d "/var/etc/dnsmasq-domainlist.d" ]; then
+		rm -rf /var/etc/dnsmasq-domainlist.d
+		dnsmasq_restart=1
+	fi
 }
 
 ipset_init() {
@@ -72,7 +80,9 @@ ipset_flush() {
 }
 
 restart_dnsmasq() {
-	/etc/init.d/dnsmasq restart >/dev/null 2>&1
+	if [ "$dnsmasq_restart" == "1" ]; then
+		/etc/init.d/dnsmasq restart >/dev/null 2>&1
+	fi
 }
 
 load_config() {
@@ -95,6 +105,8 @@ start() {
 
 stop() {
 	load_config
+
+	[ $ENABLED -ne 1 ] && NO_RESTART_DNSMASQ=false
 
 	del_cron
 	del_dns

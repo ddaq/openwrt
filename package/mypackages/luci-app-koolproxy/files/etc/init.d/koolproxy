@@ -337,6 +337,8 @@ pre_start() {
 }
 
 post_stop() {
+	load_config
+	[ $? -ne 1 ] && NO_RESTART_DNSMASQ=false
 	if [ $NO_RESTART_DNSMASQ ]; then
 		remove_ipset_conf
 	else
