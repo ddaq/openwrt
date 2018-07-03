@@ -23,11 +23,9 @@ start()
 	else
 		service_start $PROG -P $port
 	fi
-	#iptables -A INPUT -p tcp --dport 1688 -j ACCEPT
 }
 
 stop()
 {
 	service_stop $PROG
-	#iptables -D INPUT -p tcp --dport 1688 -j ACCEPT
 }
