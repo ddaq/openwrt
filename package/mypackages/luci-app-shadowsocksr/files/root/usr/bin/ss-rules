@@ -51,12 +51,6 @@ flush_rules() {
 	for setname in $(ipset -n list | grep "ss_spec"); do
 		ipset destroy $setname 2>/dev/null
 	done
-	if [ -n "$WAN_FW_IPSET" ]; then
-		for setname in $(ipset -n list | grep "$WAN_FW_IPSET"); do
-			ipset flush $setname 2>/dev/null
-			ipset destroy $setname 2>/dev/null
-		done
-	fi
 	FWI=$(uci get firewall.shadowsocks.path 2>/dev/null)
 	[ -n "$FWI" ] && echo '# firewall include file' >$FWI
 	return 0
@@ -70,7 +64,6 @@ ipset_init() {
 		create ss_spec_dst_sp hash:net hashsize 64
 		create ss_spec_dst_bp hash:net hashsize 64
 		create ss_spec_dst_fw hash:net hashsize 64
-		$(gen_ipset_ext)
 		$(gen_lan_host_ipset_entry)
 		$(gen_special_purpose_ip | sed -e "s/^/add ss_spec_dst_sp /")
 		$(sed -e "s/^/add ss_spec_dst_bp /" ${WAN_BP_LIST:=/dev/null} 2>/dev/null)
@@ -79,15 +72,6 @@ ipset_init() {
 		$(for ip in $WAN_FW_IP; do echo "add ss_spec_dst_fw $ip"; done)
 EOF
 	return 0
-}
-
-gen_ipset_ext() {
-	if [ -n "$WAN_FW_IPSET" ]; then
-		setname=$(ipset -n list | grep -w "$WAN_FW_IPSET")
-		if [ -z "$setname" ]; then
-			echo create ${WAN_FW_IPSET} hash:ip timeout 3600
-		fi
-	fi
 }
 
 ipt_nat() {
@@ -236,12 +220,6 @@ gen_prerouting_rules() {
 	done
 }
 
-restart_dnsmasq() {
-	if [ -n "$WAN_FW_IPSET" ]; then
-		/etc/init.d/dnsmasq restart >/dev/null 2>&1
-	fi
-}
-
 while getopts ":s:l:S:L:B:b:W:w:p:I:d:a:A:e:oOuUfh" arg; do
 	case "$arg" in
 		s)
@@ -315,7 +293,7 @@ elif [ "$TPROXY" = 2 ]; then
 	: ${LOCAL_PORT:?"You must assign a port for the udp relay server."}
 fi
 
-flush_rules && ipset_init && ipt_nat && ipt_mangle && export_ipt_rules && restart_dnsmasq
+flush_rules && ipset_init && ipt_nat && ipt_mangle && export_ipt_rules
 RET=$?
 [ "$RET" = 0 ] || loger 3 "Start failed!"
 exit $RET
