@@ -19,32 +19,32 @@ mode.rmempty=false
 mode:value("gfwlist", translate("GFW Domain List"))
 mode:value("chinalist", translate("China Domain List"))
 
---s:taboption("basic", Flag, "list", translate("生成域名列表"))
-
 o = s:taboption("basic", Value, "ip", translate("DNS地址"))
---o:depends("list", "")
 o.datatype = "ipaddr"
 o.default = "8.8.4.4"
 o.placeholder = "8.8.4.4"
 
 o = s:taboption("basic", Value, "port", translate("DNS端口"))
---o:depends("list", "")
 o.datatype = "port"
 o.default = 53
 o.placeholder = 53
 
 o = s:taboption("basic", Value, "ipset", translate("IP-Set Name"))
---o:depends("list", "")
 o.datatype = "string"
 o.placeholder = "gfwlist/chinalist"
 
-file1 = s:taboption("basic", DummyValue, "path1", translate("File Path"))
-file1.value = string.format("/etc/domainlist/gfwlist.conf")
-file1:depends({mode="gfwlist"})
+o = s:option(Value, "ipset_args", translate("IP-Set Arguments"),
+	translate("Passes arguments to ipset. Use with care!"))
+o:value("", translate("None"))
+o:value("hash:ip timeout 3600")
 
-file2 = s:taboption("basic", DummyValue, "path2", translate("File Path"))
-file2.value = string.format("/etc/domainlist/chinalist.conf")
-file2:depends({mode="chinalist"})
+o = s:taboption("basic", DummyValue, "gfwlist_path", translate("File Path"))
+o.value = string.format("/etc/domainlist/gfwlist.conf")
+o:depends({mode="gfwlist"})
+
+o = s:taboption("basic", DummyValue, "chinalist_path", translate("File Path"))
+o.value = string.format("/etc/domainlist/chinalist.conf")
+o:depends({mode="chinalist"})
 
 o = s:taboption("basic",ListValue,"time_update",translate("Auto Update"))
 for s=0,23 do

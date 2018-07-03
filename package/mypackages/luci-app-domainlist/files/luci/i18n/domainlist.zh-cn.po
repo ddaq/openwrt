@@ -21,6 +21,15 @@ msgstr "国内域名列表"
 msgid "Enable"
 msgstr "启用"
 
+msgid "IP-Set Name"
+msgstr "IP-Set名称"
+
+msgid "IP-Set Arguments"
+msgstr "IP-Set参数"
+
+msgid "Passes arguments to ipset. Use with care!"
+msgstr "传递到ipset的参数。小心使用！"
+
 msgid "File Path"
 msgstr "文件路径"
 
