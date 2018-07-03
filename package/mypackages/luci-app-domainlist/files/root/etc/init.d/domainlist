@@ -55,15 +55,14 @@ ipset_init() {
 		if [ -z "$setname" ]; then
 			if [ -n "$IPSET_ARGS" ]; then
 				ipset create $IPSET_NAME $IPSET_ARGS
-			elif
+			else
 				ipset create $IPSET_NAME hash:ip timeout 3600
 			fi
 		fi
 	fi
 }
 
-ipset_flush()
-{
+ipset_flush() {
 	if [ -n "$IPSET_NAME" ]; then
 		for setname in $(ipset -n list | grep "$IPSET_NAME"); do
 			ipset flush $setname 2>/dev/null
@@ -72,14 +71,17 @@ ipset_flush()
 	fi
 }
 
-restart_dnsmasq()
-{
+restart_dnsmasq() {
 	/etc/init.d/dnsmasq restart >/dev/null 2>&1
 }
 
-start() {
+load_config() {
 	config_load $CONFIG
 	config_foreach get_config $CONFIG
+}
+
+start() {
+	load_config
 
 	[ $ENABLED -ne 1 ] && exit 0
 
@@ -92,6 +94,8 @@ start() {
 }
 
 stop() {
+	load_config
+
 	del_cron
 	del_dns
 	ipset_flush

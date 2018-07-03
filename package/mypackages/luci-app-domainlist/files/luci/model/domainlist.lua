@@ -33,7 +33,7 @@ o = s:taboption("basic", Value, "ipset", translate("IP-Set Name"))
 o.datatype = "string"
 o.placeholder = "gfwlist/chinalist"
 
-o = s:option(Value, "ipset_args", translate("IP-Set Arguments"),
+o = s:taboption("basic", Value, "ipset_args", translate("IP-Set Arguments"),
 	translate("Passes arguments to ipset. Use with care!"))
 o:value("", translate("None"))
 o:value("hash:ip timeout 3600")
