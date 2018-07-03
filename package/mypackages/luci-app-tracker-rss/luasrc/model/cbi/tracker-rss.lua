@@ -26,8 +26,8 @@ end
 o.default=0
 o.rmempty=false
 
-o=s:option(Button, "update", translate("Manually force update<br />Tracker List"))
-o.inputtitle=translate("Update manually")
+o=s:option(Button, "update", translate("Manual Update"))
+o.inputtitle=translate("Update List")
 o.inputstyle="reload"
 o.write=function()
 	luci.sys.call("/usr/share/tracker-rss/trackerupdate 2>&1 >/dev/null")

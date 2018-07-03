@@ -12,6 +12,7 @@ get_config() {
 	config_get_bool ENABLED $1 enabled 0
 	config_get DOMAIN_MODE $1 mode
 	config_get IPSET_NAME $1 ipset
+	config_get IPSET_ARGS $1 ipset_args
 }
 
 add_cron() {
@@ -27,8 +28,7 @@ del_cron() {
 	sed -i '/domainlistupdate/d' /etc/crontabs/root >/dev/null 2>&1
 }
 
-add_dns()
-{
+add_dns() {
 	mkdir -p /var/etc/dnsmasq-domainlist.d
 	mkdir -p /tmp/dnsmasq.d
 	cat > /tmp/dnsmasq.d/dnsmasq-domainlist.conf <<EOF
@@ -42,53 +42,76 @@ EOF
 		rm -rf /var/etc/dnsmasq-domainlist.d/chinalist.conf
 		ln -sf $CHINALIST_FILE /var/etc/dnsmasq-domainlist.d/chinalist.conf
 	fi
+
+	dnsmasq_restart=1
 }
 
-del_dns()
-{
-	rm -f /tmp/dnsmasq.d/dnsmasq-domainlist.conf
-	rm -rf /var/etc/dnsmasq-domainlist.d
+del_dns() {
+	if [ -f "/tmp/dnsmasq.d/dnsmasq-domainlist.conf" ]; then
+		rm -rf /tmp/dnsmasq.d/dnsmasq-domainlist.conf
+		dnsmasq_restart=1
+	fi
+	if [ -d "/var/etc/dnsmasq-domainlist.d" ]; then
+		rm -rf /var/etc/dnsmasq-domainlist.d
+		dnsmasq_restart=1
+	fi
 }
 
-ipset_init()
-{
+ipset_init() {
 	if [ -n "$IPSET_NAME" ]; then
 		setname=$(ipset -n list | grep -w "$IPSET_NAME")
 		if [ -z "$setname" ]; then
-			ipset create $IPSET_NAME hash:ip timeout 3600
+			if [ -n "$IPSET_ARGS" ]; then
+				ipset create $IPSET_NAME $IPSET_ARGS
+			else
+				ipset create $IPSET_NAME hash:ip timeout 3600
+			fi
 		fi
 	fi
 }
 
-ipset_flush()
-{
+ipset_flush() {
 	if [ -n "$IPSET_NAME" ]; then
 		for setname in $(ipset -n list | grep "$IPSET_NAME"); do
+			ipset flush $setname 2>/dev/null
 			ipset destroy $setname 2>/dev/null
 		done
 	fi
 }
 
-restart_dnsmasq()
-{
-	/etc/init.d/dnsmasq restart >/dev/null 2>&1
+restart_dnsmasq() {
+	if [ "$dnsmasq_restart" == "1" ]; then
+		/etc/init.d/dnsmasq restart >/dev/null 2>&1
+	fi
+}
+
+load_config() {
+	config_load $CONFIG
+	config_foreach get_config $CONFIG
 }
 
 start() {
-	config_load $CONFIG
-	config_foreach get_config $CONFIG
+	load_config
 
 	[ $ENABLED -ne 1 ] && exit 0
 
 	add_cron
-	[ ! $NO_UPDATE_DOMAINLIST ] && /usr/share/domainlist/domainlistupdate 2>&1 >/dev/null
 	add_dns
+	ipset_init
+
+	[ ! $NO_UPDATE_DOMAINLIST ] && /usr/share/domainlist/domainlistupdate 2>&1 >/dev/null
 	restart_dnsmasq
 }
 
 stop() {
+	load_config
+
+	[ $ENABLED -ne 1 ] && NO_RESTART_DNSMASQ=false
+
 	del_cron
 	del_dns
+	ipset_flush
+
 	[ ! $NO_RESTART_DNSMASQ ] && restart_dnsmasq
 }
 

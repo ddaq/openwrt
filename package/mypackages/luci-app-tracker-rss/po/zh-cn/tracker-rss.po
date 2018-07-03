@@ -18,11 +18,11 @@ msgstr "启用"
 msgid "Auto Update"
 msgstr "自动更新"
 
-msgid "Manually force update<br />Tracker List"
-msgstr "手动强制更新<br />Tracker List"
-
-msgid "Update manually"
+msgid "Manual Update"
 msgstr "手动更新"
+
+msgid "Update List"
+msgstr "更新列表"
 
 msgid "RSS Setting Lists"
 msgstr "订阅设置列表"
