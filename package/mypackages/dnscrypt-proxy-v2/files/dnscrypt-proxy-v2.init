@@ -137,6 +137,7 @@ dnscrypt_config() {
 }
 
 boot() {
+	sleep 5
 	rc_procd start_service
 }
 

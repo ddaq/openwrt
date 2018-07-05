@@ -21,6 +21,8 @@ PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
 PKG_INSTALL:=1
 
+RSTRIP:=true
+
 include $(INCLUDE_DIR)/package.mk
 
 define Package/dnscrypt-proxy-v2
@@ -47,7 +49,7 @@ define Build/Prepare
 endef
 
 define Build/Compile
-    echo "No compilation necessary!"
+	upx --lzma $(PKG_BUILD_DIR)/linux-$(ARCH)/dnscrypt-proxy
 endef
 
 define Build/Install
