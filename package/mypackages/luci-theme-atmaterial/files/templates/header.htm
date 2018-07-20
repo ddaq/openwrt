@@ -19,16 +19,13 @@
 -%>
 
 <%
-	local ver = require "luci.version"
 	local sys  = require "luci.sys"
 	local util = require "luci.util"
 	local http = require "luci.http"
 	local disp = require "luci.dispatcher"
 
 	local boardinfo = util.ubus("system", "board")
-	local boardinfo={}
-	boardinfo.hostname=sys.hostname()
-	
+
 	local request  = disp.context.path
 	local request2 = disp.context.request
 
@@ -214,6 +211,7 @@
 	<% if css then %>
 		<style title="text/css"><%= css %></style>
 	<% end -%>
+	<script src="<%=resource%>/cbi.js"></script>
 	<script src="<%=resource%>/xhr.js"></script>
 </head>
 <body class="lang_<%=luci.i18n.context.lang%> <%- if node then %><%= striptags( node.title ) %><%- end %> <% if luci.dispatcher.context.authsession then %>logged-in<% end %>">
