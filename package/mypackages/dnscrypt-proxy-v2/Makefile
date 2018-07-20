@@ -49,7 +49,7 @@ define Build/Prepare
 endef
 
 define Build/Compile
-	upx --lzma $(PKG_BUILD_DIR)/linux-$(ARCH)/dnscrypt-proxy
+	echo "No compilation necessary!"
 endef
 
 define Build/Install
