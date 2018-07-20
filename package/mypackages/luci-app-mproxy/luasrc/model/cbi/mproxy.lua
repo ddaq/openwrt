@@ -17,7 +17,7 @@ s.addremove = false
 s.anonymous = true
 s.description = translate(string.format("%s<br /><br />", Status))
 
-s:option(Flag, "enable", translate("Start"))
+s:option(Flag, "enabled", translate("Start"))
 
 o = s:option(Value, "local_port", translate("Local Port"))
 o.datatype = "port"
@@ -33,7 +33,5 @@ o = s:option(Value, "remote_port", translate("Remote Port"))
 o.datatype = "port"
 o.default = 1194
 o.placeholder = 1194
-
-s:option(Flag, "allow_wan", translate("Allow Access From WAN"))
 
 return m
