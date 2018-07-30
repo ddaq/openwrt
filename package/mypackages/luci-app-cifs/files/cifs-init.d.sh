@@ -178,3 +178,8 @@ restart() {
 		echo "Cifs Mount is Disabled.Please enter The Web Cotrol Center to enable it."
 	fi
 }
+
+boot() {
+	sleep 10
+	start
+}

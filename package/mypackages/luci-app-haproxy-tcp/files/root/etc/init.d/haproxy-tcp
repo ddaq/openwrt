@@ -37,13 +37,31 @@ gen_srv(){
 	done
 }
 
+gen_dns() {
+	local index=0
+	local dns
+	local dnslist="$(uci -q get $NAME.general.dns_resolver)"
+
+	if [ -n "${dnslist}" ]
+	then
+		for dns in ${dnslist}
+		do
+			index=$((index+1))
+			echo "    "nameserver dns$index $dns
+		done
+	else
+		echo "    "nameserver dns1 114.114.114.114:53
+		echo "    "nameserver dns2 114.114.115.115:53
+	fi
+}
+
 boot() {
 	local delay=$(uci -q get $NAME.general.startup_delay)
 	(sleep ${delay:-0} && start >/dev/null 2>&1) &
 	return 0
 }
 
-start_instance() {
+start_service() {
 	enable=$(uci -q get $NAME.general.enable)
 	[ "$enable" = 1 ] || return 0
 	listen=$(uci -q get $NAME.general.listen)
@@ -71,8 +89,9 @@ start_instance() {
 	    stats refresh 10s
 
 	resolvers dns
-	    nameserver dns1 114.114.114.114:53
-	    nameserver dns2 114.114.115.115:53
+		$(
+		   gen_dns
+		)
 	    resolve_retries       3
 	    timeout resolve       1s
 	    timeout retry         1s
@@ -106,10 +125,24 @@ EOF
 
 }
 
-start_service() {
-	start_instance
+reload_service() {
+	stop
+	start
 }
 
 service_triggers() {
-	procd_add_reload_trigger "haproxy-tcp"
+	local trigger
+	local triggerlist="$(uci -q get $NAME.general.procd_trigger)"
+
+	PROCD_RELOAD_DELAY=2000
+	if [ -n "${triggerlist}" ]
+	then
+		for trigger in ${triggerlist}
+		do
+			procd_add_interface_trigger "interface.*.up" "${trigger}" /etc/init.d/$NAME reload
+		done
+	else
+		procd_add_raw_trigger "interface.*.up" 2000 /etc/init.d/$NAME reload
+	fi
+	procd_add_reload_trigger "$NAME"
 }
