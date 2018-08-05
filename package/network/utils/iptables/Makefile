@@ -569,6 +569,11 @@ ifneq ($(wildcard $(PKG_BUILD_DIR)/.config_*),$(subst .configured_,.config_,$(ST
   endef
 endif
 
+define Build/Prepare
+	$(call Build/Prepare/Default)
+	$(CP) ./modules/* $(PKG_BUILD_DIR)/
+endef
+
 define Build/Configure
 $(Build/Configure/rebuild)
 $(Build/Configure/Default)
