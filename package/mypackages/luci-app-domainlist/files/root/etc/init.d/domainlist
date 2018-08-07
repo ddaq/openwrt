@@ -100,7 +100,7 @@ start() {
 	ipset_init
 
 	if [ ! $NO_UPDATE_DOMAINLIST ]; then
-		/usr/share/domainlist/domainlistupdate 2>&1 >/dev/null
+		sh /usr/share/domainlist/domainlistupdate >/dev/null 2>&1
 	else
 		restart_dnsmasq
 	fi
