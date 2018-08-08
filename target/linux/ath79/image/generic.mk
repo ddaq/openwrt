@@ -13,23 +13,31 @@ define Device/avm_fritz300e
 endef
 TARGET_DEVICES += avm_fritz300e
 
+define Device/buffalo_wzr-hp-g450h
+  ATH_SOC := ar7242
+  DEVICE_TITLE := Buffalo WZR-HP-G450H
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  IMAGE_SIZE := 32256k
+  SUPPORTED_DEVICES += wzr-hp-g450h
+endef
+TARGET_DEVICES += buffalo_wzr-hp-g450h
+
 define Device/embeddedwireless_dorin
   ATH_SOC := ar9331
   DEVICE_TITLE := Embedded Wireless Dorin
   DEVICE_PACKAGES := kmod-usb-chipidea2
   IMAGE_SIZE := 16000k
-  SUPPORTED_DEVICES += ew-dorin
 endef
 TARGET_DEVICES += embeddedwireless_dorin
 
-define Device/etactica-eg200
+define Device/etactica_eg200
   ATH_SOC := ar9331
   DEVICE_TITLE := eTactica EG200
   DEVICE_PACKAGES := kmod-usb-chipidea2 kmod-ledtrig-oneshot \
 	kmod-usb-serial kmod-usb-serial-ftdi kmod-usb-storage  kmod-fs-ext4
-  SUPPORTED_DEVICES += etactica,eg200 rme-eg200
+  SUPPORTED_DEVICES += rme-eg200
 endef
-TARGET_DEVICES += etactica-eg200
+TARGET_DEVICES += etactica_eg200
 
 define Device/glinet_ar150
   ATH_SOC := ar9330
@@ -66,6 +74,34 @@ define Device/openmesh_om5p-ac-v2
 endef
 TARGET_DEVICES += openmesh_om5p-ac-v2
 
+define Device/pcs_cap324
+  ATH_SOC := ar9344
+  DEVICE_TITLE := PowerCloud Systems CAP324
+  IMAGE_SIZE := 16000k
+  IMAGES := sysupgrade.bin
+  SUPPORTED_DEVICES += cap324
+endef
+TARGET_DEVICES += pcs_cap324
+
+define Device/pcs_cr3000
+  ATH_SOC := ar9341
+  DEVICE_TITLE := PowerCloud Systems CR3000
+  IMAGE_SIZE := 7808k
+  IMAGES := sysupgrade.bin
+  SUPPORTED_DEVICES += cr3000
+endef
+TARGET_DEVICES += pcs_cr3000
+
+define Device/pcs_cr5000
+  ATH_SOC := ar9344
+  DEVICE_TITLE := PowerCloud Systems CR5000
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ledtrig-usbport kmod-usb-core
+  IMAGE_SIZE := 7808k
+  IMAGES := sysupgrade.bin
+  SUPPORTED_DEVICES += cr5000
+endef
+TARGET_DEVICES += pcs_cr5000
+
 define Device/netgear_wndr3800
   ATH_SOC := ar7161
   DEVICE_TITLE := NETGEAR WNDR3800
@@ -84,16 +120,7 @@ define Device/netgear_wndr3800
 endef
 TARGET_DEVICES += netgear_wndr3800
 
-define Device/buffalo_wzr-hp-g450h
-  ATH_SOC := ar7242
-  DEVICE_TITLE := Buffalo WZR-HP-G450H
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
-  IMAGE_SIZE := 32256k
-  SUPPORTED_DEVICES += wzr-hp-g450h
-endef
-TARGET_DEVICES += buffalo_wzr-hp-g450h
-
-define Device/phicomm-k2t
+define Device/phicomm_k2t
   ATH_SOC := qca9563
   DEVICE_TITLE := Phicomm K2T
   KERNEL := kernel-bin | append-dtb | lzma | uImage lzma
@@ -103,6 +130,5 @@ define Device/phicomm-k2t
   IMAGE/default := append-kernel | append-rootfs | pad-rootfs
   IMAGE/sysupgrade.bin := $$(IMAGE/default) | append-metadata | check-size $$$$(IMAGE_SIZE)
   DEVICE_PACKAGES := kmod-leds-reset kmod-ath10k ath10k-firmware-qca9888
-  SUPPORTED_DEVICES += phicomm,k2t
 endef
-TARGET_DEVICES += phicomm-k2t
+TARGET_DEVICES += phicomm_k2t
