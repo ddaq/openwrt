@@ -627,6 +627,11 @@ initialize_qos()
 	fi
 
 	update_markfile
+
+	if [ $total_upload_bandwidth -ge 0 ] && [ $total_download_bandwidth -ge 0 ] ; then
+		ipt_export_rule
+	fi
+
 }
 
 define_interface()
@@ -752,8 +757,6 @@ start()
 		load_all_config_options "$config_file_name" "global"
 		initialize_qos
 	fi
-
-	ipt_export_rule
 
 	rm -rf "$lock_file"
 }
