@@ -33,7 +33,7 @@ include $(INCLUDE_DIR)/package.mk
 
 define KernelPackage/mwlwifi
   SUBMENU:=Wireless Drivers
-  TITLE:=Marvell 88W8864/88W8897/88W8964 wireless driver
+  TITLE:=Marvell 88W8864/88W8897/88W8964/88W8997 wireless driver
   DEPENDS:=+kmod-mac80211 +@DRIVER_11N_SUPPORT +@DRIVER_11AC_SUPPORT +@DRIVER_11W_SUPPORT @PCI_SUPPORT @TARGET_mvebu
   FILES:=$(PKG_BUILD_DIR)/mwlwifi.ko
   AUTOLOAD:=$(call AutoLoad,50,mwlwifi)
@@ -93,7 +93,16 @@ define Package/mwlwifi-firmware-88w8964/install
 	$(call Package/mwlwifi-firmware/install,$(1),88W8964.bin)
 endef
 
+define Package/mwlwifi-firmware-88w8997
+$(call Package/mwlwifi-firmware-default,88W8997)
+endef
+
+define Package/mwlwifi-firmware-88w8997/install
+	$(call Package/mwlwifi-firmware/install,$(1),88W8997.bin)
+endef
+
 $(eval $(call KernelPackage,mwlwifi))
 $(eval $(call BuildPackage,mwlwifi-firmware-88w8864))
 $(eval $(call BuildPackage,mwlwifi-firmware-88w8897))
 $(eval $(call BuildPackage,mwlwifi-firmware-88w8964))
+$(eval $(call BuildPackage,mwlwifi-firmware-88w8997))
