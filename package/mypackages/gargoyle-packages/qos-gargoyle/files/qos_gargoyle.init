@@ -627,6 +627,11 @@ initialize_qos()
 	fi
 
 	update_markfile
+
+	if [ $total_upload_bandwidth -ge 0 ] && [ $total_download_bandwidth -ge 0 ] ; then
+		ipt_export_rule
+	fi
+
 }
 
 define_interface()
@@ -667,6 +672,25 @@ ipt_delete_rule()
 	done
 }
 
+ipt_export_rule() {
+	FWI=$(uci get firewall.qos_gargoyle.path 2>/dev/null)
+	[ -n "$FWI" ] || return 0
+	cat <<-CAT >>$FWI
+	iptables-save -c | grep -v -E "qos_egress|qos_ingress" | iptables-restore -c
+	iptables-restore -n <<-EOF
+	$(iptables-save | grep -E "qos_egress|qos_ingress|^\*|^COMMIT" |\
+		sed -e "s/^-A \(INPUT\|FORWARD\|POSTROUTING\)/-A \1/")
+	EOF
+	CAT
+	return $?
+}
+
+ipt_flush_rule() {
+	FWI=$(uci get firewall.qos_gargoyle.path 2>/dev/null)
+	[ -n "$FWI" ] && echo '# firewall include file' >$FWI
+	return 0
+}
+
 stop()
 {
 	# if already in process of being initialized, do not continue
@@ -686,6 +710,8 @@ stop()
 	for iface in $(tc qdisc show | grep hfsc | awk '{print $5}'); do
 		tc qdisc del dev "$iface" root
 	done
+
+	ipt_flush_rule
 
 	# eliminate existing rules in mangle table
 	ipt_delete_rule "mangle" "POSTROUTING" "qos_egress"

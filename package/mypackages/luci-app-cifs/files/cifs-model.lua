@@ -95,10 +95,5 @@ pwd = s:option(Value, "pwd", translate("password"))
 pwd.rmempty = true
 pwd.size = 3
 
-local apply = luci.http.formvalue("cbi.apply")
-if apply then
-	io.popen("/etc/init.d/cifs restart")
-end
-
 
 return m

@@ -99,8 +99,11 @@ start() {
 	add_dns
 	ipset_init
 
-	[ ! $NO_UPDATE_DOMAINLIST ] && /usr/share/domainlist/domainlistupdate 2>&1 >/dev/null
-	restart_dnsmasq
+	if [ ! $NO_UPDATE_DOMAINLIST ]; then
+		sh /usr/share/domainlist/domainlistupdate >/dev/null 2>&1
+	else
+		restart_dnsmasq
+	fi
 }
 
 stop() {

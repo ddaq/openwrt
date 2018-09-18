@@ -1,7 +1,6 @@
 
 config mproxy 'config'
-	option enable '0'
+	option enabled '0'
 	option local_port '8080'
 	option remote_ip '127.0.0.1'
 	option remote_port '1194'
-	option allow_wan '0'

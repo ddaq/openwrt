@@ -5,6 +5,8 @@ START=30
 USE_PROCD=1
 NAME=dnscrypt-proxy
 
+USER=nobody
+GRP=nogroup
 BIN=/usr/sbin/dnscrypt-proxy
 PIDLOC=/var/run
 CFGLOC=/var/etc/dnscrypt
@@ -12,27 +14,24 @@ CFGDIR=/etc/dnscrypt-proxy
 CFGFILE=$CFGDIR/dnscrypt-proxy.toml
 CFGRUN=$CFGLOC/dnscrypt-proxy.toml
 PIDFILE=$PIDLOC/$NAME-$USER.pid
-USER=nobody
-GRP=nogroup
 
 dnscrypt_config() {
-
 	local address4 port4 address6 port6 log_file log_level cloaking_file blacklist bl_config bl_log bl_type bl_file bl_type
 	local syslog ephemeral_keys local_cache block_ipv6
 	local bl='0'
 
-	config_get		address4			$1	'address'				'127.0.0.1'
-	config_get		port4				$1	'port'					'5353'
-	config_get		address6			$1	'ipv6_address'			''
-	config_get		port6				$1	'ipv6_port'				'5353'
-	config_get		log_file			$1	'log_file'				''
-	config_get		log_level			$1	'log_level'				'6'
-	config_get		cloaking_file		$1	'cloaking_file'			''
-	config_get		blacklist			$1	'blacklist'				''
-	config_get_bool	syslog				$1	'syslog'					'1'
-	config_get_bool	ephemeral_keys		$1	'ephemeral_keys'			'0'
-	config_get_bool	local_cache			$1	'local_cache'			'0'
-	config_get_bool	block_ipv6			$1	'block_ipv6'				'0'
+	config_get      address4          $1    'address'           '127.0.0.1'
+	config_get      port4             $1    'port'              '5353'
+	config_get      address6          $1    'ipv6_address'      ''
+	config_get      port6             $1    'ipv6_port'         '5353'
+	config_get      log_file          $1    'log_file'          ''
+	config_get      log_level         $1    'log_level'         '6'
+	config_get      cloaking_file     $1    'cloaking_file'     ''
+	config_get      blacklist         $1    'blacklist'         ''
+	config_get_bool	syslog            $1    'syslog'            '1'
+	config_get_bool	ephemeral_keys    $1    'ephemeral_keys'    '0'
+	config_get_bool	local_cache       $1    'local_cache'       '0'
+	config_get_bool	block_ipv6        $1    'block_ipv6'        '0'
 
 	[ -z "${address6}" ] && listen_string="['${address4}:${port4}']" || listen_string="['${address4}:${port4}', '${address6}:${port6}']"
 
@@ -137,13 +136,12 @@ dnscrypt_config() {
 	chmod 644 $CFGLOC/$BLACKLIST_DOMAINS $CFGLOC/$BLACKLIST_IPS $CFGLOC/$CLOAKING_DOMAINS "${CFGRUN}"
 }
 
-boot()
-{
+boot() {
+	sleep 5
 	rc_procd start_service
 }
 
 start_service() {
-
 	mkdir -p $PIDLOC $CFGLOC
 
 	[ -f "${CFGFILE}" ] && {
@@ -176,7 +174,6 @@ start_service() {
 }
 
 stop_service() {
-
 	local copylist="$CFGLOC/*cloaking* $CFGLOC/*blacklist* $CFGLOC/public*"
 
 	[ -d $CFGDIR ] && {
@@ -193,7 +190,6 @@ stop_service() {
 }
 
 service_triggers() {
-
 	local trigger
 	local triggerlist="$(uci_get dnscrypt-proxy.@global[0].procd_trigger)"
 
@@ -211,6 +207,5 @@ service_triggers() {
 }
 
 shutdown() {
-
 	stop_service
 }

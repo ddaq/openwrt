@@ -56,6 +56,9 @@ define Package/luci-app-cifs/install
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/cifs-init.d.sh $(1)/etc/init.d/cifs
 
+	$(INSTALL_DIR) $(1)/etc/uci-defaults
+	$(INSTALL_BIN) ./files/luci-cifs $(1)/etc/uci-defaults/luci-cifs
+
 	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/controller
 	$(INSTALL_DATA) ./files/cifs-controller.lua $(1)/usr/lib/lua/luci/controller/cifs.lua
 
