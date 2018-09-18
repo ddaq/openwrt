@@ -11,7 +11,10 @@
 	model = "TP-Link TL-WR1043ND Version 1";
 
 	aliases {
-		led-status = &system;
+		led-boot = &system;
+		led-failsafe = &system;
+		led-running = &system;
+		led-upgrade = &system;
 	};
 
 	extosc: ref {
@@ -139,9 +142,6 @@
 
 	phy-mode = "rgmii";
 	mtd-mac-address = <&uboot 0x1fc00>;
-
-	resets = <&rst 9>;
-	reset-names = "mac";
 
 	fixed-link {
 		speed = <1000>;

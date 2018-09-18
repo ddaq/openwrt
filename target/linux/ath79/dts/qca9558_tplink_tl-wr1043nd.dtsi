@@ -12,7 +12,10 @@
 	};
 
 	aliases {
-		led-status = &system;
+		led-boot = &system;
+		led-failsafe = &system;
+		led-running = &system;
+		led-upgrade = &system;
 	};
 
 	leds {
@@ -155,6 +158,8 @@
 &eth0 {
 	status = "okay";
 
+	pll-data = <0x56000000 0x00000101 0x00001616>;
+
 	mtd-mac-address = <&uboot 0x1fc00>;
 	mtd-mac-address-increment = <1>;
 	phy-handle = <&phy0>;
@@ -162,6 +167,8 @@
 
 &eth1 {
 	status = "okay";
+
+	pll-data = <0x03000101 0x00000101 0x00001616>;
 
 	mtd-mac-address = <&uboot 0x1fc00>;
 
