@@ -11,6 +11,12 @@ local l=luci.sys.exec("grep -v !x /usr/share/koolproxy/data/rules/koolproxy.txt 
 local q=luci.sys.exec("grep -v !x /usr/share/koolproxy/data/rules/daily.txt | wc -l")
 local h=luci.sys.exec("grep -v '^!' /usr/share/koolproxy/data/rules/user.txt | wc -l")
 local i=luci.sys.exec("cat /usr/share/koolproxy/dnsmasq.adblock | wc -l")
+local easylist_rules_local=luci.sys.exec("cat /usr/share/koolproxy/data/rules/easylistchina.txt | sed -n '3p'|awk '{print $3,$4}'")
+local easylist_nu_local=luci.sys.exec("grep -v '^!' /usr/share/koolproxy/data/rules/easylistchina.txt | wc -l")
+local abx_rules_local=luci.sys.exec("cat /usr/share/koolproxy/data/rules/chengfeng.txt | sed -n '3p'|awk '{print $3,$4}'")
+local abx_nu_local=luci.sys.exec("grep -v '^!' /usr/share/koolproxy/data/rules/chengfeng.txt | wc -l")
+local fanboy_rules_local=luci.sys.exec("cat /usr/share/koolproxy/data/rules/fanboy.txt | sed -n '4p'|awk '{print $3,$4}'")
+local fanboy_nu_local=luci.sys.exec("grep -v '^!' /usr/share/koolproxy/data/rules/fanboy.txt | wc -l")
 
 if luci.sys.call("pidof koolproxy >/dev/null") == 0 then
 	status = translate("<strong><font color=\"green\">KoolProxy is Running</font></strong>")
@@ -47,7 +53,7 @@ e.default = 1
 e.rmempty = false
 e:value(1, translate("全局模式"))
 e:value(2, translate("IPSET模式"))
---e:value(3, translate("视频模式"))
+e:value(3, translate("视频模式"))
 
 e = t:taboption("base", MultiValue, "koolproxy_rules", translate("内置规则"))
 e.optional = false
@@ -55,7 +61,14 @@ e.rmempty = false
 e:value("koolproxy.txt", translate("静态规则"))
 e:value("daily.txt", translate("每日规则"))
 e:value("kp.dat", translate("视频规则"))
-e:value("user.txt", translate("自定规则"))
+e:value("user.txt", translate("自定义规则"))
+
+e = t:taboption("base", MultiValue, "thirdparty_rules", translate("第三方规则"))
+e.optional = false
+e.rmempty = false
+e:value("easylistchina.txt", translate("ABP规则"))
+e:value("chengfeng.txt", translate("乘风规则"))
+e:value("fanboy.txt", translate("Fanboy规则"))
 
 e = t:taboption("base", ListValue, "koolproxy_port", translate("端口控制"))
 e.default = 0
@@ -97,7 +110,7 @@ e.write = function()
 	luci.sys.call("/usr/share/koolproxy/kpupdate 2>&1 >/dev/null")
 	luci.http.redirect(luci.dispatcher.build_url("admin","services","koolproxy"))
 end
-e.description = translate(string.format("<font color=\"red\"><strong>更新订阅规则与Adblock Plus Host</strong></font><br /><font color=\"green\">静态规则: %s / %s条 视频规则: %s<br />每日规则: %s / %s条 自定规则: %s条<br />Host: %s条</font>", s, l, u, p, q, h, i))
+e.description = translate(string.format("<font color=\"red\"><strong>更新订阅规则与Adblock Plus Host</strong></font><br /><font color=\"green\">静态规则: %s / %s条 视频规则: %s<br />每日规则: %s / %s条 自定义规则: %s条<br />Host: %s条</font><br /><font color=\"blue\">ABP规则: %s / %s条 乘风规则: %s / %s条<br />Fanboy规则: %s / %s条</font>", s, l, u, p, q, h, i, easylist_rules_local, easylist_nu_local, abx_rules_local, abx_nu_local, fanboy_rules_local, fanboy_nu_local))
 
 t:tab("cert",translate("Certificate Management"))
 
@@ -116,6 +129,32 @@ if nixio.fs.access("/usr/share/koolproxy/data/certs/ca.crt")then
 		Download()
 		luci.http.redirect(luci.dispatcher.build_url("admin","services","koolproxy"))
 	end
+end
+
+t:tab("white_weblist",translate("网站白名单设置"))
+
+local i = "/etc/adblocklist/adbypass"
+e = t:taboption("white_weblist", TextValue, "adbypass_domain")
+e.description = translate("These had been joined websites will not usefilter.Please input the domain names of websites,every line can input only one website domain.For example,google.com.")
+e.rows = 28
+e.wrap = "off"
+e.rmempty = false
+
+function e.cfgvalue()
+	return fs.readfile(i) or ""
+end
+
+function e.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n", "\n")
+	else
+		value = ""
+	end
+	fs.writefile("/tmp/adbypass", value)
+	if (luci.sys.call("cmp -s /tmp/adbypass /etc/adblocklist/adbypass") == 1) then
+		fs.writefile(i, value)
+	end
+	fs.remove("/tmp/adbypass")
 end
 
 t:tab("weblist",translate("Set Backlist Of Websites"))
@@ -144,11 +183,37 @@ function e.write(self, section, value)
 	fs.remove("/tmp/adblock")
 end
 
-t:tab("iplist",translate("Set Backlist Of IP"))
+t:tab("white_iplist",translate("IP白名单设置"))
+
+local i = "/etc/adblocklist/adbypassip"
+e = t:taboption("white_iplist", TextValue, "adbypass_ip")
+e.description = translate("These had been joined ip addresses will use proxy, but only GFW model.Please input the ip address or ip address segment,every line can input only one ip address.For example,112.123.134.145/24 or 112.123.134.145.")
+e.rows = 28
+e.wrap = "off"
+e.rmempty = false
+
+function e.cfgvalue()
+	return fs.readfile(i) or ""
+end
+
+function e.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n", "\n")
+	else
+		value = ""
+	end
+	fs.writefile("/tmp/adbypassip", value)
+	if (luci.sys.call("cmp -s /tmp/adbypassip /etc/adblocklist/adbypassip") == 1) then
+		fs.writefile(i, value)
+	end
+	fs.remove("/tmp/adbypassip")
+end
+
+t:tab("iplist",translate("IP黑名单设置"))
 
 local i = "/etc/adblocklist/adblockip"
 e = t:taboption("iplist", TextValue, "adblock_ip")
-e.description = translate("These had been joined ip addresses will use proxy,but only GFW model.Please input the ip address or ip address segment,every line can input only one ip address.For example,112.123.134.145/24 or 112.123.134.145.")
+e.description = translate("These had been joined ip addresses will not use filter.Please input the ip address or ip address segment,every line can input only one ip address.For example,112.123.134.145/24 or 112.123.134.145.")
 e.rows = 28
 e.wrap = "off"
 e.rmempty = false
