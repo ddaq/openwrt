@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2016-2017 Jian Chang <aa65535@live.com>
+# Copyright (C) 2016-2018 Jian Chang <aa65535@live.com>
 # Copyright (C) 2017 Ian Li <OpenSource@ianli.xyz>
 #
 # This is free software, licensed under the GNU General Public License v3.
@@ -9,7 +9,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-shadowsocksr
-PKG_VERSION:=1.9.0
+PKG_VERSION:=1.9.1
 PKG_RELEASE:=1
 
 PKG_LICENSE:=GPLv3
