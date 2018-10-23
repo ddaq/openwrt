@@ -1,0 +1,32 @@
+diff --git a/file.c b/file.c
+index 2f829f1..b73fd47 100644 (file)
+--- a/file.c
++++ b/file.c
+@@ -17,7 +17,10 @@
+  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+  */
+ 
+-#define _DEFAULT_SOURCE
++#ifndef _DEFAULT_SOURCE
++# define _DEFAULT_SOURCE
++#endif
++
+ #define _BSD_SOURCE
+ #define _DARWIN_C_SOURCE
+ #define _XOPEN_SOURCE 700
+diff --git a/main.c b/main.c
+index 6574c15..219e37e 100644 (file)
+--- a/main.c
++++ b/main.c
+@@ -17,7 +17,10 @@
+  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+  */
+ 
+-#define _DEFAULT_SOURCE
++#ifndef _DEFAULT_SOURCE
++# define _DEFAULT_SOURCE
++#endif
++
+ #define _BSD_SOURCE
+ #define _GNU_SOURCE
+ #define _XOPEN_SOURCE  700
