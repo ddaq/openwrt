@@ -58,10 +58,10 @@ endef
 
 Package/vsftpd-alt-tls/conffiles=$(Package/vsftpd-alt/conffiles)
 
-ifneq ($(CONFIG_USE_MUSL),)
-  NLSSTRING:=-lcrypt
-else
+ifneq ($(CONFIG_USE_UCLIBC),)
   NLSSTRING:=-lcrypt -lnsl
+else
+  NLSSTRING:=-lcrypt
 endif
 
 ifeq ($(BUILD_VARIANT),notls)
