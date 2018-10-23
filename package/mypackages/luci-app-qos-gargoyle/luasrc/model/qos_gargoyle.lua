@@ -27,5 +27,6 @@ end
 
 function get_wan()
 	local net = require "luci.model.network".init()
-	return net:get_wannet()
+	local wan_nets = net:get_wan_networks()
+	return wan_nets and #wan_nets > 0 and wan_nets[1]
 end
