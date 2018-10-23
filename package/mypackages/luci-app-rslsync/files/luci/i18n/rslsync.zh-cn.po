@@ -18,6 +18,9 @@ msgstr "基本配置"
 msgid "Enable"
 msgstr "启用"
 
+msgid "Rslsync Path"
+msgstr "Rslsync路径"
+
 msgid "Resilio Sync Web Page"
 msgstr "Resilio Sync 配置页面"
 
