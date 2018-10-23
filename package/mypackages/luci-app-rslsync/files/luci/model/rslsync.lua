@@ -21,6 +21,10 @@ s.description = translate(string.format("%s<br /><br />", Status))
 
 s:tab("basic", translate("Basic Setting"))
 s:taboption("basic", Flag, "enable", translate("Enable"))
+o = s:taboption("basic", Value, "execpath", translate("Rslsync Path"))
+o.datatype = "string"
+o.placeholder = "/mnt/sda"
+
 s:taboption("basic", DummyValue,"opennewwindow" ,"<br /><p align=\"justify\"><script type=\"text/javascript\"></script><input type=\"button\" class=\"cbi-button cbi-button-apply\" value=\"Resilio Sync Web Page\" onclick=\"window.open('http://'+window.location.host+':8888')\" /></p>", detailInfo)
 
 

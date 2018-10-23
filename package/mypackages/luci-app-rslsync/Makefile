@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-rslsync
-PKG_VERSION:=2.6.0
+PKG_VERSION:=2.6.1
 PKG_RELEASE:=1
 
 PKG_MAINTAINER:=paradislover <wxu1986@gmail.com>
@@ -113,17 +113,17 @@ ifeq ($(ARCH),arm)
 ifeq ($(if $(findstring -mfloat-abi=soft,$(TARGET_CFLAGS)),soft),soft)
 	@echo "arm"
 	$(call Install/lib,$(1))
-	$(INSTALL_BIN) ./files/bin/ARM/rslsync $(1)/usr/bin/rslsync
+#	$(INSTALL_BIN) ./files/bin/ARM/rslsync $(1)/usr/bin/rslsync
 	$(INSTALL_BIN) ./files/etc/init.d/rslsync $(1)/etc/init.d/rslsync
 endif
 ifeq ($(if $(findstring -mfloat-abi=hard,$(TARGET_CFLAGS)),hard),hard)
 	@echo "armhf"
 	$(call Install/lib,$(1),armhf)
-ifdef CONFIG_USE_MUSL
-	$(INSTALL_BIN) ./files/bin/ARMHF/2.4.5/rslsync $(1)/usr/bin/rslsync
-else
-	$(INSTALL_BIN) ./files/bin/ARMHF/$(PKG_VERSION)/rslsync $(1)/usr/bin/rslsync
-endif
+#ifdef CONFIG_USE_MUSL
+#	$(INSTALL_BIN) ./files/bin/ARMHF/2.4.5/rslsync $(1)/usr/bin/rslsync
+#else
+#	$(INSTALL_BIN) ./files/bin/ARMHF/$(PKG_VERSION)/rslsync $(1)/usr/bin/rslsync
+#endif
 	$(INSTALL_BIN) ./files/etc/init.d/rslsync.armhf $(1)/etc/init.d/rslsync
 endif
 endif

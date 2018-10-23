@@ -1,2 +1,4 @@
 config rslsync 'config'
-    option enable '1'
+	option enable '0'
+	option mem_percentage '50'
+	option nice '10'
