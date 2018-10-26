@@ -169,7 +169,11 @@ restart() {
 		echo 'Starting... '
 
 		config_foreach mount_natshare natshare
-		/etc/init.d/samba restart
+		if [ -f "/etc/config/samba4" ]; then
+			/etc/init.d/samba4 restart
+		else
+			/etc/init.d/samba restart
+		fi
 
 		echo "Cifs Mount succeed."
 		}
