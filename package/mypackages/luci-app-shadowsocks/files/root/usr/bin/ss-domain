@@ -12,7 +12,7 @@ do
 
 	#new_ip=$(nslookup "${server}" | tail -n +3 | awk -F" " '/^Address 1/{ print $3}')
 
-	new_ip=`ping -c 1 -w 1 $server | awk -F"[()]" '/PING/{print $2}'`
+	new_ip=`ping -c 1 -W 1 $server | awk -F"[()]" '/PING/{print $2}'`
 	if [ -n "$new_ip" ]; then
 		logger -t shadowsocks "nslookup $server -> $new_ip"
 		old_ip=$(uci get shadowsocks.@servers[${i}].server)
