@@ -189,7 +189,9 @@ input,
 }
 
 select:not([multiple="multiple"]):focus,
-input:focus {
+input:focus,
+.cbi-dropdown:focus,
+.cbi-dynlist > .item:focus {
     border-color: #0099CC;
 }
 
@@ -844,7 +846,7 @@ td > table > tbody > tr > td,
 
 /* button style */
 
-.btn, .cbi-button {
+.btn, .cbi-button, .item::after {
     -webkit-appearance: none;
     text-transform: uppercase;
     /*color: #fff;
@@ -878,6 +880,7 @@ td > table > tbody > tr > td,
 .cbi-button:hover,
 .cbi-button:focus,
 .cbi-button:active,
+.item:hover::after,
 .cbi-page-actions .cbi-button-apply + .cbi-button-save:hover,
 .cbi-page-actions .cbi-button-apply + .cbi-button-save:focus,
 .cbi-page-actions .cbi-button-apply + .cbi-button-save:active {
@@ -1163,16 +1166,14 @@ td > table > tbody > tr > td,
     font-size: small;
 }
 
+
+.cbi-dynlist,
 .cbi-dropdown {
     display: inline-flex;
     cursor: pointer;
     position: relative;
     padding: 0;
     height: auto;
-}
-
-.cbi-dropdown:focus {
-    outline: 2px solid #4b6e9b;
 }
 
 .cbi-dropdown > ul {
@@ -1314,6 +1315,22 @@ td > table > tbody > tr > td,
     border-bottom: none;
 }
 
+.cbi-dropdown[open] > ul.dropdown > li[unselectable] {
+    opacity: 0.7;
+}
+
+.cbi-dropdown[open] > ul.dropdown > li > input.create-item-input:first-child:last-child {
+    width: 100%;
+}
+
+.cbi-dropdown[open] > ul.dropdown > li[unselectable] {
+    opacity: 0.7;
+}
+
+.cbi-dropdown[open] > ul.dropdown > li > input.create-item-input:first-child:last-child {
+    width: 100%;
+}
+
 .cbi-dropdown[disabled] {
     pointer-events: none;
     opacity: .6;
@@ -1326,6 +1343,69 @@ td > table > tbody > tr > td,
 .cbi-dropdown[open] .zonebadge {
     width: auto;
 }
+
+.cbi-dynlist {
+    height: auto;
+    min-height: 30px;
+    display: inline-flex;
+    flex-direction: column;
+}
+
+.cbi-dynlist > .item {
+    margin: 0 2em 4px 0;
+    padding: 2px 4px;
+    border-bottom: 2px solid rgba(0, 0, 0, .26);
+    position: relative;
+    pointer-events: none;
+    cursor: default;
+}
+
+.cbi-dynlist > .item::after {
+    content: "×";
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    top: 0;
+    right: -2em;
+    bottom: 0;
+    padding: 0 6px;
+    border: 1px solid #c44;
+    font-weight: bold;
+    color: #c44;
+    pointer-events: auto;
+}
+
+.cbi-dynlist {
+    height: auto;
+    min-height: 30px;
+    display: inline-flex;
+    flex-direction: column;
+}
+
+.cbi-dynlist > .item {
+    margin: 0 2em 4px 0;
+    padding: 2px 4px;
+    border-bottom: 2px solid rgba(0, 0, 0, .26);
+    position: relative;
+    pointer-events: none;
+    cursor: default;
+}
+
+.cbi-dynlist > .item::after {
+    content: "×";
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    top: 0;
+    right: -2em;
+    bottom: 0;
+    padding: 0 6px;
+    border: 1px solid #c44;
+    font-weight: bold;
+    color: #c44;
+    pointer-events: auto;
+}
+
 
 /* luci */
 
@@ -1376,6 +1456,11 @@ td > table > tbody > tr > td,
 
 .cbi-value-field .cbi-input-select {
     width: 15rem;
+}
+
+.cbi-value-field .cbi-input-invalid {
+    border-bottom-color: #f00;
+    color: #f00;
 }
 
 .th[data-type="button"], .td[data-type="button"],
@@ -1731,6 +1816,7 @@ small {
     display: flex;
     flex-direction: column;
 }
+
 #diag-rc-output > pre {
     background-color: #f5f5f5;
     display: block;
@@ -1758,6 +1844,10 @@ header > .fill > .container > .pull-right > * {
 
 #xhr_poll_status > .label.success {
     background-color: #14CE14;
+}
+
+#xhr_poll_status {
+    display: flex;
 }
 
 .label {
@@ -1946,6 +2036,11 @@ header > .fill > .container > .pull-right > * {
 .node-system-packages .cbi-tabmenu,
 .node-system-flashops .cbi-tabmenu {
     border: none;
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .16), 0 0 2px 0 rgba(0, 0, 0, .12);
+}
+
+.node-system-flashops form.inline + form.inline {
+    margin-left: 0;
 }
 
 #cbi-firewall-redirect table *,
@@ -1985,6 +2080,12 @@ body.lang_pl.node-main-login .cbi-value-title {
         width: calc(100% - 15rem);
     }
 
+#applyreboot-section {
+	margin: 2rem;
+	line-height: 300%;
+}
+
+@media screen and (max-width: 1600px) {
     .btn,
     .cbi-button {
         padding: 0.3rem 0.6rem;
