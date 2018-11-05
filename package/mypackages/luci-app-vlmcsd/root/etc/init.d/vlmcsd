@@ -9,7 +9,7 @@ start_instance() {
 	config_get autoactivate $1 autoactivate 1
 	[ $enabled -eq 0 ] && return 0
 
-	HOSTNAME=$(uci get system.@system[0].hostname)
+	HOSTNAME=$(uci get system.@system[0].hostname)\.lan
 	host_name=$(awk -F ',' '/^[ \t]*srv-host=_vlmcs\._tcp\.lan/{print $2}' /etc/dnsmasq.conf)
 
 	echo $HOSTNAME
