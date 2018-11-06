@@ -160,9 +160,13 @@
 		-- calculate the number of unsaved changes
 		if tree.nodes[category] and tree.nodes[category].ucidata then
 			local ucichanges = 0
-			local i, j
+
 			for i, j in pairs(require("luci.model.uci").cursor():changes()) do
-				ucichanges = ucichanges + #j
+				for k, l in pairs(j) do
+					for m, n in pairs(l) do
+						ucichanges = ucichanges + 1;
+					end
+				end
 			end
 
 			if ucichanges > 0 then
@@ -207,11 +211,10 @@
 	<% if css then %>
 		<style title="text/css"><%= css %></style>
 	<% end -%>
-	<script src="<%=url('admin/translations', luci.i18n.context.lang)%><%# ?v=PKG_VERSION %>"></script>
 	<script src="<%=resource%>/cbi.js"></script>
 	<script src="<%=resource%>/xhr.js"></script>
 </head>
-<body class="lang_<%=luci.i18n.context.lang%> <% if node then %><%= striptags( node.title ) %><% end %> <% if luci.dispatcher.context.authsession then %>logged-in<% end %>" data-page="<%= table.concat(disp.context.requestpath, "-") %>">
+<body class="lang_<%=luci.i18n.context.lang%> <%- if node then %><%= striptags( node.title ) %><%- end %> <% if luci.dispatcher.context.authsession then %>logged-in<% end %>">
 <header>
 	<div class="fill">
 		<div class="container">
@@ -240,9 +243,7 @@
 					<div class="alert-message warning">
 						<h4><%:No password set!%></h4>
 						<p><%:There is no password set on this router. Please configure a root password to protect the web interface and enable SSH.%></p>
-						<% if disp.lookup("admin/system/admin") then %>
-							<div class="right"><a class="btn" href="<%=url("admin/system/admin")%>"><%:Go to password configuration...%></a></div>
-						<% end %>
+						<div class="right"><a class="btn" href="<%=url("admin/system/admin")%>"><%:Go to password configuration...%></a></div>
 					</div>
 				<%- end -%>
 
