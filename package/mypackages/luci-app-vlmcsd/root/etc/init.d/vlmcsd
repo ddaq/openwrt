@@ -9,13 +9,13 @@ start_instance() {
 	config_get autoactivate $1 autoactivate 1
 	[ $enabled -eq 0 ] && return 0
 
-	HOSTNAME=$(uci get system.@system[0].hostname)\.lan
+	HOSTNAME=$(uci get system.@system[0].hostname)
 	host_name=$(awk -F ',' '/^[ \t]*srv-host=_vlmcs\._tcp\.lan/{print $2}' /etc/dnsmasq.conf)
 
 	echo $HOSTNAME
 	echo $host_name
 
-	if [ "$HOSTNAME" != "$host_name" ];then
+	if [ "${HOSTNAME}.lan" != "$host_name" ];then
 		sed -i '/^[ \t]*srv-host=_vlmcs\._tcp\.lan/d' /etc/dnsmasq.conf
 		sed -i '$a\srv-host=_vlmcs\._tcp\.lan,'"$HOSTNAME"\.lan','"1688"',0,100' /etc/dnsmasq.conf
 		/etc/init.d/dnsmasq restart >/dev/null 2>&1
