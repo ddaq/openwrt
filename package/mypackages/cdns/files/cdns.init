@@ -1,7 +1,6 @@
 #!/bin/sh /etc/rc.common
 
 START=99
-STOP=15
 USE_PROCD=1
 
 apply_servers() {
@@ -12,7 +11,7 @@ apply_servers() {
 
 start_instance() {
 	config_get_bool enabled $1 enabled 0
-	[ $enabled -eq 1 ] || exit 1
+	[ $enabled -eq 1 ] || return 1
 	json_init
 	json_add_object 'global'
 	json_add_boolean 'daemon' 0
@@ -44,6 +43,6 @@ start_service() {
 	config_foreach start_instance cdns
 }
 
-reload_service() {
-	restart
+service_triggers() {
+	procd_add_reload_trigger "cdns"
 }
