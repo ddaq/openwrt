@@ -58,6 +58,7 @@ define Package/luci-app-domainlist/install
 	$(INSTALL_BIN) ./files/root/usr/share/domainlist/domainlistupdate $(1)/usr/share/domainlist/
 	$(INSTALL_DATA) ./files/root/usr/share/domainlist/user-gfwlist.txt $(1)/usr/share/domainlist/
 	$(INSTALL_DATA) ./files/root/usr/share/domainlist/user-chinalist.txt $(1)/usr/share/domainlist/
+	$(INSTALL_DATA) ./files/root/usr/share/domainlist/user-exclude.txt $(1)/usr/share/domainlist/
 
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_DATA) ./files/root/etc/config/domainlist $(1)/etc/config/domainlist

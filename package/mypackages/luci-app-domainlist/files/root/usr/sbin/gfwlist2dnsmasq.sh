@@ -189,12 +189,12 @@ get_args(){
         fi
     fi
 
-    if [ ! -z $EXTRA_DOMAIN_FILE ] && [ ! -f $EXTRA_DOMAIN_FILE ]; then
+    if [ ! -z $EXTRA_DOMAIN_FILE ] && [ ! -s $EXTRA_DOMAIN_FILE ]; then
         _yellow 'WARNING:\nExtra domain file does not exist, ignored.\n\n'
         EXTRA_DOMAIN_FILE=''
     fi
 
-    if [ ! -z $EXCLUDE_DOMAIN_FILE ] && [ ! -f $EXCLUDE_DOMAIN_FILE ]; then
+    if [ ! -z $EXCLUDE_DOMAIN_FILE ] && [ ! -s $EXCLUDE_DOMAIN_FILE ]; then
         _yellow 'WARNING:\nExclude domain file does not exist, ignored.\n\n'
         EXCLUDE_DOMAIN_FILE=''
     fi

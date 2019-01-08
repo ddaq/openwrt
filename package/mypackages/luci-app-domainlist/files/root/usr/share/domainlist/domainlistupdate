@@ -10,6 +10,9 @@ USER_GFWLIST_FILE=/usr/share/domainlist/user-gfwlist.txt
 CHINALIST_FILE=/etc/domainlist/chinalist.conf
 USER_CHINALIST_FILE=/usr/share/domainlist/user-chinalist.txt
 
+
+USER_EXCLUDE_FILE=/usr/share/domainlist/user-exclude.txt
+
 get_config()
 {
 	config_get DNS_IP $1 ip
@@ -29,15 +32,15 @@ process()
 
 	if [ "$DOMAIN_MODE" == "gfwlist" ]; then
 		if [ -z "$IPSET_NAME" ]; then
-			/usr/sbin/gfwlist -i -d $DNS_IP -p $DNS_PORT --extra-domain-file $USER_GFWLIST_FILE -o $GFWLIST_FILE
+			/usr/sbin/gfwlist -i -d $DNS_IP -p $DNS_PORT --extra-domain-file $USER_GFWLIST_FILE --exclude-domain-file $USER_EXCLUDE_FILE -o $GFWLIST_FILE
 		else
-			/usr/sbin/gfwlist -i -d $DNS_IP -p $DNS_PORT -s $IPSET_NAME --extra-domain-file $USER_GFWLIST_FILE -o $GFWLIST_FILE
+			/usr/sbin/gfwlist -i -d $DNS_IP -p $DNS_PORT -s $IPSET_NAME --extra-domain-file $USER_GFWLIST_FILE --exclude-domain-file $USER_EXCLUDE_FILE -o $GFWLIST_FILE
 		fi
 	elif [ "$DOMAIN_MODE" == "chinalist" ];then
 		if [ -z "$IPSET_NAME" ]; then
-			/usr/sbin/chinalist -i -d $DNS_IP -p $DNS_PORT --extra-domain-file $USER_CHINALIST_FILE -o $CHINALIST_FILE
+			/usr/sbin/chinalist -i -d $DNS_IP -p $DNS_PORT --extra-domain-file $USER_CHINALIST_FILE --exclude-domain-file $USER_EXCLUDE_FILE -o $CHINALIST_FILE
 		else
-			/usr/sbin/chinalist -i -d $DNS_IP -p $DNS_PORT -s $IPSET_NAME --extra-domain-file $USER_CHINALIST_FILE -o $CHINALIST_FILE
+			/usr/sbin/chinalist -i -d $DNS_IP -p $DNS_PORT -s $IPSET_NAME --extra-domain-file $USER_CHINALIST_FILE --exclude-domain-file $USER_EXCLUDE_FILE -o $CHINALIST_FILE
 		fi
 	fi
 }
