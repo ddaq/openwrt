@@ -1,0 +1,28 @@
+#!/bin/sh
+
+NAME=shadowsocks
+
+is_need_switch() {
+    wget -4 --spider --quiet --timeout=10 https://www.facebook.com/
+    if [ "$?" != "0" ]; then
+        wget -4 --spider --quiet --timeout=10 https://www.baidu.com/
+        if [ "$?" = "0" ]; then
+            return 0
+        fi
+    fi
+    return 1
+}
+
+servers=$(uci -n export $NAME | awk '$2=/servers/{print substr($3,2,9)}')
+
+while is_need_switch; do
+    next_server=$(uci get $NAME.@transparent_proxy[0].main_server | awk -v servers="$servers" '{split(servers,V);for (i in V) {if (V[i] == $1) {print V[i % 11 + 1];break}}}')
+    if [ -n "$next_server" ]; then
+        uci delete $NAME.@transparent_proxy[0].main_server
+        for c in $(seq 2); do # 默认会启动两个进程，可以更改数字调整
+            uci add_list $NAME.@transparent_proxy[0].main_server=$next_server
+        done
+        uci commit $NAME
+        /etc/init.d/$NAME restart
+    fi
+done
