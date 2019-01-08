@@ -31,6 +31,15 @@ end
 
 local lanIPAddr = uci:get("network", "lan", "ipaddr")
 local lanNetmask = uci:get("network", "lan", "netmask")
+-- if multiple ip addresses on lan interface, will be return as table of CIDR notations i.e. {"10.0.0.1/24","10.0.0.2/24"}
+if (type(lanIPAddr) == "table") then                                                                                   
+        first = true                                                                                             
+        for i,line in ipairs(lanIPAddr) do                                                                  
+                lanIPAddr = lanIPAddr[i]                                                                    
+                break                                           
+        end                                                     
+        lanIPAddr = string.match(lanIPAddr,"[0-9.]+")                                                            
+end          
 if lanIPAddr and lanNetmask then
 	laPlaceholder = ip.new(lanIPAddr .. "/" .. lanNetmask )
 end
@@ -40,8 +49,8 @@ function is_supported_interface(arg)
 	local proto=arg['proto']
 	local ifname=arg['ifname']
 
-	if name and supportedIfaces:find(name) then return true end
-	if name and not ignoredIfaces:find(name) then
+	if name and supportedIfaces:match('%f[%w]' .. name .. '%f[%W]') then return true end
+	if name and not ignoredIfaces:match('%f[%w]' .. name .. '%f[%W]') then
 		if type(ifname) == "table" then
 			for key,value in pairs(ifname) do
 				if value and value:sub(1,3) == "tun" then return true end
@@ -203,6 +212,12 @@ uci:foreach("network", "interface", function(s)
 end)
 icmp.rmempty = true
 
+append_local = s1:taboption("advanced", Value, "append_local_rules", translate("Append local IP Tables rules"), translate("Special instructions to append iptables rules for local IPs/netmasks/devices."))
+append_local.rmempty = true
+
+append_remote = s1:taboption("advanced", Value, "append_remote_rules", translate("Append remote IP Tables rules"), translate("Special instructions to append iptables rules for remote IPs/netmasks."))
+append_remote.rmempty = true
+
 wantid = s1:taboption("advanced", Value, "wan_tid", translate("WAN Table ID"), translate("Starting (WAN) Table ID number for tables created by the service."))
 wantid.rmempty = true
 wantid.placeholder = "201"
@@ -225,7 +240,12 @@ s3.sortable  = true
 s3.anonymous = true
 s3.addremove = true
 
-s3:option(Value, "comment", translate("Comment"))
+local comment = uci:get_first("vpn-policy-routing", "policy", "comment")
+if comment then
+	s3:option(Value, "comment", translate("Comment"))
+else
+	s3:option(Value, "name", translate("Name"))
+end
 
 la = s3:option(Value, "local_addresses", translate("Local addresses/devices"))
 if laPlaceholder then
