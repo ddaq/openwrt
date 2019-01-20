@@ -526,7 +526,7 @@ $(call Package/iptables/Default)
   SECTION:=libs
   CATEGORY:=Libraries
   DEPENDS:=+libip4tc +libip6tc +libxtables
-  ABI_VERSION:=$(PKG_VERSION)
+  ABI_VERSION:=0
   TITLE:=IPv4/IPv6 firewall - shared libiptc library (nf compatibility stub)
 endef
 
@@ -535,7 +535,7 @@ $(call Package/iptables/Default)
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=IPv4 firewall - shared libiptc library
-  ABI_VERSION:=$(PKG_VERSION)
+  ABI_VERSION:=0
   DEPENDS:=+libxtables
 endef
 
@@ -544,7 +544,7 @@ $(call Package/iptables/Default)
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=IPv6 firewall - shared libiptc library
-  ABI_VERSION:=$(PKG_VERSION)
+  ABI_VERSION:=0
   DEPENDS:=+libxtables
 endef
 
@@ -553,7 +553,7 @@ define Package/libxtables
  SECTION:=libs
  CATEGORY:=Libraries
  TITLE:=IPv4/IPv6 firewall - shared xtables library
- ABI_VERSION:=$(PKG_VERSION)
+ ABI_VERSION:=12
  DEPENDS:= \
 	+IPTABLES_CONNLABEL:libnetfilter-conntrack \
 	+IPTABLES_NFTABLES:libnftnl
@@ -564,7 +564,7 @@ define Package/libxtables-nft
  SECTION:=libs
  CATEGORY:=Libraries
  TITLE:=IPv4/IPv6 firewall - shared xtables nft library
- ABI_VERSION:=$(PKG_VERSION)
+ ABI_VERSION:=12
  DEPENDS:=libxtables
 endef
 
