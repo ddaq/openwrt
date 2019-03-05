@@ -139,7 +139,7 @@ Default configuration has service disabled (use Web UI to enable/start service o
 
 The ```vpn-policy-routing``` settings are split into ```basic``` and ```advanced``` settings. The full list of configuration parameters of ```vpn-policy-routing.config``` section is:
 
-|Web UI Section|Parameter|Type|Default|Comment|
+|Web UI Section|Parameter|Type|Default|Description|
 | --- | --- | --- | --- | --- |
 |Basic|enabled|boolean|0|Enable/disable the ```vpn-policy-routing``` service.|
 |Basic|verbosity|integer|2|Can be set to 0, 1 or 2 to control the console and system log output verbosity of the ```vpn-policy-routing``` service.|
@@ -147,13 +147,11 @@ The ```vpn-policy-routing``` settings are split into ```basic``` and ```advanced
 |Basic|dnsmasq_enabled|boolean|1|Enable/disable use of ```dnsmasq``` for ```ipset``` entries. See [Use DNSMASQ](#use-dnsmasq) for more details. Assumes ```ipset_enabled=1```. Make sure the [requirements](#requirements) are met.|
 |Basic|ipset_enabled|boolean|1|Enable/disable use of ```ipset``` entries for compatible policies. This speeds up service start-up and operation. Make sure the [requirements](#requirements) are met. This setting is hidden in Web UI unless ```Use DNSMASQ for domain policies``` is disabled.|
 |Basic|ipv6_enabled|boolean|1|Enable/disable IPv6 support.|
-|Advanced|supported_interface|list/string||Allows to specify the list of interface names (in lower case) to be explicitly supported by the ```vpn-policy-routing``` service. Can be useful if your OpenVPN tunnels have dev option other than tun\* or tap\*.|
-|Advanced|ignored_interface|list/string||Allows to specify the list of interface names (in lower case) to be ignored by the ```vpn-policy-routing``` service. Can be useful if running both VPN server and VPN client on the router.|
+|Advanced|supported_interface|list/string||Allows to specify the space-separated list of interface names (in lower case) to be explicitly supported by the ```vpn-policy-routing``` service. Can be useful if your OpenVPN tunnels have dev option other than tun\* or tap\*.|
+|Advanced|ignored_interface|list/string||Allows to specify the space-separated list of interface names (in lower case) to be ignored by the ```vpn-policy-routing``` service. Can be useful if running both VPN server and VPN client on the router.|
 |Advanced|iprule_enabled|boolean|0|Add an ```ip rule```, not an ```iptables``` entry for policies with just the local address. Use with caution to manipulate policies priorities.|
-|Advanced|udp_proto_enabled|boolean|0|Add ```UDP``` protocol ```iptables``` rules for protocol policies with unset local addresses and either local or remote port set. By default (unless this variable is set to 1) only ```TCP``` protocol iptables rules are added.|
-|Advanced|forward_chain_enabled|boolean|0|Create and use a ```FORWARD``` chain in the mangle table. By default the ```vpn-policy-routing``` only creates and uses the ```PREROUTING``` chain. Use with caution.|
-|Advanced|input_chain_enabled|boolean|0|Create and use an ```INPUT``` chain in the mangle table. By default the ```vpn-policy-routing``` only creates and uses the ```PREROUTING``` chain. Use with caution.|
-|Advanced|output_chain_enabled|boolean|0|Create and use an ```OUTPUT``` chain in the mangle table. By default the ```vpn-policy-routing``` only creates and uses the ```PREROUTING``` chain. Policies in the ```OUTPUT``` chain will affect traffic from the router itself. All policies with unset local address will be duplicated in the ```OUTPUT``` chain. Use with caution.|
+|Advanced|proto_control|boolean|0|Shows ```Protocol``` column for policies, allowing to specify ```TCP``` (default), ```UDP``` or ```TCP/UDP``` protocol for ```iptables``` rules for policies.|
+|Advanced|chain_control|boolean|0|Shows ```Chain``` column for policies, allowing to specify ```PREROUTING``` (default), ```FORWARD```, ```INPUT```, or ```OUTPUT``` chain for ```iptables``` rules for policies.|
 |Advanced|icmp_interface|string||Set the default ICMP protocol interface (interface name in lower case). Requires ```output_chain_enabled=1```. This setting is hidden in Web UI unless ```Create OUTPUT Chain``` is enabled. Use with caution.|
 |Advanced|wan_tid|integer|201|Starting (WAN) Table ID number for tables created by the ```vpn-policy-routing``` service.|
 |Advanced|wan_mark|hexadecimal|0x010000|Starting (WAN) fw mark for marks used by the ```vpn-policy-routing``` service. High starting mark is used to avoid conflict with SQM/QoS, this can be changed by user. Change with caution together with ```fw_mask```.|
@@ -161,33 +159,97 @@ The ```vpn-policy-routing``` settings are split into ```basic``` and ```advanced
 ||wan_dscp|integer||Allows use of [DSCP-tag based policies](#dscp-tag-based-policies) for WAN interface.|
 ||{interface_name}_dscp|integer||Allows use of [DSCP-tag based policies](#dscp-tag-based-policies) for a VPN interface.|
 
+### Policy Options
+
+Each policy may have a combination of the options below, please note that the ```name``` and ```interface```  options are required.
+
+|Option|Default|Description|
+| --- | --- | --- |
+|name||Policy name, it **must** be set.|
+|interface||Policy interface, it **must** be set.|
+|local_address||List of space-separated local/source IP addresses, CIDRs or hostnames. You can also specify a local interface (like a specially created wlan) prepended by an ```@``` symbol.|
+|local_port||List of space-separated local/source ports or port-ranges.|
+|remote_address||List of space-separated remote/target IP addresses, CIDRs or hostnames/domain names.|
+|remote_port||List of space-separated remote/target ports or port-ranges.|
+|proto|tcp|Policy protocol, can be either ```tcp```, ```udp``` or ```tcp udp```. This setting is case-sensitive. To display the ```Protocol``` column for policies in the WebUI, make sure to select ```Enabled``` for ```Show Protocol Column``` in the ```Advanced``` tab.|
+|chain|PREROUTING|Policy chain, can be either ```PREROUTING```, ```FORWARDING```, ```INPUT``` or ```OUTPUT```. This setting is case-sensitive. To display the ```Chain``` column for policies in the WebUI, make sure to select ```Enabled``` for ```Show Chain Column``` in the ```Advanced``` tab.|
+
 ### Example Policies
+
+The following policies route Plex Media Server traffic via WAN. Please note, you'd still need to open the port in the firewall either manually or with the UPnP.
 
 ```text
 config policy
-	option name 'Plex Local Server'
-	option interface 'wan'
-	option local_ports '32400'
+  option name 'Plex Local Server'
+  option interface 'wan'
+  option local_port '32400'
 
 config policy
-	option name 'Plex Remote Servers'
-	option interface 'wan'
-	option remote_addresses 'plex.tv my.plexapp.com'
+  option name 'Plex Remote Servers'
+  option interface 'wan'
+  option remote_address 'plex.tv my.plexapp.com'
+```
+
+The following policy route Emby traffic via WAN. Please note, you'd still need to open the port in the firewall either manually or with the UPnP.
+
+```text
+config policy
+  option name 'Emby Local Server'
+  option interface 'wan'
+  option local_port '8096 8920'
 
 config policy
-	option name 'LogmeIn Hamachi'
-	option interface 'wan'
-	option remote_addresses '25.0.0.0/8 hamachi.cc hamachi.com logmein.com'
+  option name 'Emby Remote Servers'
+  option interface 'wan'
+  option remote_address 'emby.media app.emby.media tv.emby.media'
+```
+
+The following policy routes LogMeIn Hamachi zero-setup VPN traffic via WAN.
+
+```text
+config policy
+  option name 'LogmeIn Hamachi'
+  option interface 'wan'
+  option remote_address '25.0.0.0/8 hamachi.cc hamachi.com logmein.com'
+```
+
+The following policy routes standard SIP port traffic via WAN for both TCP and UDP protocols.
+
+```text
+config policy
+  option name 'SIP Ports'
+  option interface 'wan'
+  option remote_port '5060'
+  option proto 'tcp udp'
+```
+
+The following policy allows you to run an OpenVPN server on router (at port 1194) if you're already running a tunnel with default routing set.
+
+```text
+config policy
+  option name 'OpenVPN Server'
+  option interface 'wan'
+  option local_port '1194'
+  option chain 'OUTPUT'
+```
+
+The following policies route traffic from a single IP address, a range of IP addresses or a local machine (requires definition as DHCP host record in DHCP config) via WAN.
+
+```text
+config policy
+  option name 'Local IP'
+  option interface 'wan'
+  option local_address '192.168.1.70'
 
 config policy
-	option name 'Local Subnet'
-	option interface 'wan'
-	option local_addresses '192.168.1.81/29'
+  option name 'Local Subnet'
+  option interface 'wan'
+  option local_address '192.168.1.81/29'
 
 config policy
-	option name 'Local IP'
-	option interface 'wan'
-	option local_addresses '192.168.1.70'
+  option name 'Local Machine'
+  option interface 'wan'
+  option local_address 'dell-ubuntu'
 ```
 
 ### Multiple OpenVPN Clients
@@ -198,36 +260,36 @@ For ```/etc/config/network```:
 
 ```text
 config interface 'vpnclient0'
-	option proto 'none'
-	option ifname 'ovpnc0'
+  option proto 'none'
+  option ifname 'ovpnc0'
 
 config interface 'vpnclient1'
-	option proto 'none'
-	option ifname 'ovpnc1'
+  option proto 'none'
+  option ifname 'ovpnc1'
 ```
 
 For ```/etc/config/openvpn```:
 
 ```text
 config openvpn 'vpnclient0'
-	option client '1'
-	option dev_type 'tun'
-	option dev 'ovpnc0'
-	...
+  option client '1'
+  option dev_type 'tun'
+  option dev 'ovpnc0'
+  ...
 
 config openvpn 'vpnclient1'
-	option client '1'
-	option dev_type 'tun'
-	option dev 'ovpnc1'
-	...
+  option client '1'
+  option dev_type 'tun'
+  option dev 'ovpnc1'
+  ...
 ```
 
 For ```/etc/config/vpn-policy-routing```:
 
 ```text
 config vpn-policy-routing 'config'
-	list supported_interface 'vpnclient0 vpnclient1'
-	...
+  list supported_interface 'vpnclient0 vpnclient1'
+  ...
 ```
 
 ## Discussion
@@ -254,13 +316,20 @@ If you don't want to post the ```/etc/init.d/vpn-policy-routing status``` output
   option route_nopull '1'
   ```
 
-  <!-- option route '0.0.0.0 0.0.0.0'  -->
+  or, for newer OpenVPN client/server combinations:
+
+  ```text
+  list pull_filter='ingore "redirect-gateway"'
+  ```
+
   or set the following option for your Wireguard tunnel config:
 
   ```text
   option route_allowed_ips '0'
   ```
 
+- Routing Wireguard traffic requires setting `rp_filter = 2`. Please refer to [issue #41](https://github.com/stangri/openwrt_packages/issues/41) for more details.
+
 ## Thanks
 
-I'd like to thank everyone who helped create, test and troubleshoot this service. Without contributions from [@hnyman](https://github.com/hnyman), [@dibdot](https://github.com/dibdot), [@danrl](https://github.com/danrl), [@tohojo](https://github.com/tohojo), [@cybrnook](https://github.com/cybrnook), [@nidstigator](https://github.com/nidstigator), [@AndreBL](https://github.com/AndreBL) and [@dz0ny](https://github.com/dz0ny) and rigorous testing by [@dziny](https://github.com/dziny), [@bluenote73](https://github.com/bluenote73), [@buckaroo](https://github.com/pgera) and [@Alexander-r](https://github.com/Alexander-r) it wouldn't have been possible. Wireguard support is courtesy of [Mullvad](https://www.mullvad.net).
+I'd like to thank everyone who helped create, test and troubleshoot this service. Without contributions from [@hnyman](https://github.com/hnyman), [@dibdot](https://github.com/dibdot), [@danrl](https://github.com/danrl), [@tohojo](https://github.com/tohojo), [@cybrnook](https://github.com/cybrnook), [@nidstigator](https://github.com/nidstigator), [@AndreBL](https://github.com/AndreBL) and [@dz0ny](https://github.com/dz0ny) and rigorous testing by [@dziny](https://github.com/dziny), [@bluenote73](https://github.com/bluenote73), [@buckaroo](https://github.com/pgera), [@Alexander-r](https://github.com/Alexander-r) and [n8v8R](https://github.com/n8v8R) it wouldn't have been possible. Wireguard support is courtesy of [Mullvad](https://www.mullvad.net).
