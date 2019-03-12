@@ -18,6 +18,7 @@ ath79_setup_interfaces()
 	pcs,cap324|\
 	pisen,wmm003n|\
 	pqi,air-pen|\
+	tplink,re350k-v1|\
 	tplink,re450-v2|\
 	tplink,tl-mr10u|\
 	tplink,tl-mr3020-v1|\
@@ -100,7 +101,8 @@ ath79_setup_interfaces()
 	glinet,gl-x750|\
 	tplink,tl-wr810n-v1|\
 	tplink,tl-wr810n-v2|\
-	ubnt,routerstation)
+	ubnt,routerstation|\
+	yuncore,a770)
 		ucidef_set_interfaces_lan_wan "eth1" "eth0"
 		;;
 	glinet,gl-ar750s)
