@@ -13,7 +13,7 @@ readonly __PASS__='\033[0;33m[-]\033[0m'
 readonly _ERROR_='\033[0;31mERROR\033[0m'
 readonly _WARNING_='\033[0;33mWARNING\033[0m'
 # readonly readmeURL="https://github.com/openwrt/packages/tree/master/net/vpn-policy-routing/files/README.md"
-readonly readmeURL="https://github.com/stangri/openwrt-packages/blob/vpn-policy-routing/net/vpn-policy-routing/files/README.md"
+readonly readmeURL="https://github.com/stangri/openwrt_packages/blob/master/vpn-policy-routing/files/README.md"
 
 export EXTRA_COMMANDS="status support"
 export EXTRA_HELP="	support	Generates output required to troubleshoot routing issues
@@ -57,7 +57,7 @@ export ipv6Enabled ipsetEnabled ipruleEnabled dnsmasqEnabled icmpIface
 export ignoredIfaces="" supportedIfaces=""
 export appendLocalPolicy="" appendRemotePolicy=""
 export wanIface4 wanIface6 ifaceMark ifaceTableID ifacesListAll ifacesListSupported wanGW4 wanGW6
-export ifconfigOutput ip4RouteOutput ip6RouteOutput bootTimeout
+export ifconfigOutput ip4RouteOutput ip6RouteOutput bootTimeout insertOption
 
 list_iface() { ifacesListAll="${ifacesListAll}${1} "; }
 list_supported_iface() { is_supported_interface "$1" && ifacesListSupported="${ifacesListSupported}${1} "; }
@@ -82,11 +82,12 @@ is_wan() { [ -n "$wanIface4" ] && [ "$1" = "$wanIface4" ]; }
 is_wan6() { [ -n "$wanIface6" ] && [ "$1" = "$wanIface6" ]; }
 is_ignored_interface() { string_match_word "$ignoredIfaces" "$1"; }
 is_supported_interface() { string_match_word "$supportedIfaces" "$1" || { ! is_ignored_interface "$1" && { is_wan "$1" || is_wan6 "$1" || is_tunnel "$1"; }; }; }
+is_mac_address() { expr "$1" : '[0-9A-F][0-9A-F]:[0-9A-F][0-9A-F]:[0-9A-F][0-9A-F]:[0-9A-F][0-9A-F]:[0-9A-F][0-9A-F]:[0-9A-F][0-9A-F]$' >/dev/null; }
 is_ipv4() { expr "$1" : '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*$' >/dev/null; }
-is_ipv6() { [ "${1//:}" != "$1" ]; }
+is_ipv6() { ! is_mac_address "$1" && [ "${1//:}" != "$1" ]; }
 is_netmask() { local ip="${1%/*}"; [ "$ip" != "$1" ] && is_ipv4 "$ip"; }
 is_domain() { [ "${1//[a-zA-Z-]}" != "$1" ]; }
-is_phys_dev() { [ "${1:0:1}" == "@" ] && echo "$ifconfigOutput" | grep -q "^${1:1}"; }
+is_phys_dev() { [ "${1:0:1}" == "@" ] && echo "$ip4RouteOutput" | grep -q "^${1:1}"; }
 is_turris() { /bin/ubus -S call system board | /bin/grep 'Turris' | /bin/grep -q '15.05'; }
 is_chaos_calmer() { ubus -S call system board | grep -q 'Chaos Calmer'; }
 string_match_word() { echo "$1" | grep -q -w "$2"; }
@@ -98,7 +99,7 @@ get_tunnel_gw() { echo "$ifconfigOutput" | grep "^${1}" -A 3 | grep 'P-t-P' | aw
 get_tunnel_gw6() { local gw6=$(echo "$ifconfigOutput" | grep "^${1}" -A 3 | grep 'inet6 addr:' | awk '{print $3}'); echo ${gw6:+"${gw6%:*}:1"}; }
 get_device_bridge_gw() { echo "$ip4RouteOutput" | grep -m1 "dev $1" | grep -Eso "src ([0-9]{1,3}\\.){3}[0-9]{1,3}" | awk '{print $2}'; }
 dnsmasq_kill() { killall -q -HUP dnsmasq; }
-dnsmasq_restart() { /etc/init.d/dnsmasq restart >/dev/null 2>&1; }
+dnsmasq_restart() { output 1 'Restarting DNSMASQ '; /etc/init.d/dnsmasq restart >/dev/null 2>&1 && output_okn || output_failn; }
 
 load_package_config() {
 	config_load "$packageName"
@@ -118,10 +119,18 @@ load_package_config() {
 	config_get ignoredIfaces            'config' 'ignored_interface'
 	config_get supportedIfaces          'config' 'supported_interface'
 	config_get bootTimeout              'config' 'boot_timeout' '30'
+	config_get insertOption             'config' 'iptables_rule_option' 'append'
 
 	if [ -z "${verbosity##*[!0-9]*}" ] || [ "$verbosity" -lt 0 ] || [ "$verbosity" -gt 2 ]; then
 		verbosity=1
 	fi
+
+	if [ "$insertOption" == "insert" ]; then
+		insertOption="-I"
+	else
+		insertOption="-A"
+	fi 
+
 	. /lib/functions/network.sh
 }
 
@@ -169,6 +178,13 @@ is_wan_up() {
 		output "$_ERROR_: $serviceName failed to discover WAN gateway!\\n"
 		return 1
 	fi
+}
+
+ipt_cleanup() {
+	local i
+	for i in PREROUTING FORWARD INPUT OUTPUT; do
+		while iptables -t mangle -D $i -m mark --mark 0x0/0xff0000 -j VPR_${i} >/dev/null 2>&1; do : ; done
+	done
 }
 
 # shellcheck disable=SC2086
@@ -232,7 +248,7 @@ insert_tor_policy() {
 	local comment="$1" iface="$2" laddr="$3" lport="$4" raddr="$5" rport="$6" proto="${7:-tcp}" chain="${8:-PREROUTING}"
 	local mark=$(eval echo "\$mark_$iface")
 	[ -z "$mark" ] && processPolicyStatus="${processPolicyStatus}${_ERROR_}: unknown fw_mark for ${iface}!\\n"
-	param="-t mangle -I VPR_${chain} 1 -j MARK --set-xmark ${mark}/${fwMask}"
+	param="-t mangle $insertOption VPR_${chain} 1 -j MARK --set-xmark ${mark}/${fwMask}"
 	[ -n "$laddr" ] && param="$param -s $laddr"
 	[ -n "$lport" ] && param="$param -p tcp -m multiport --sport ${lport//-/:}"
 	[ -n "$raddr" ] && param="$param -d $raddr"
@@ -244,58 +260,38 @@ insert_tor_policy() {
 
 insert_policy() {
 	local comment="$1" iface="$2" laddr="$3" lport="$4" raddr="$5" rport="$6" proto="${7:-tcp}" chain="${8:-PREROUTING}"
-	local mark=$(eval echo "\$mark_$iface") param
+	local mark=$(eval echo "\$mark_$iface") param i
 	if [ "$ipv6Enabled" -eq 0 ]; then
 		is_ipv6 "$laddr" && return 0
 		is_ipv6 "$raddr" && return 0
 	fi
 
-	[ -z "$mark" ] && processPolicyStatus="${processPolicyStatus}${_ERROR_}: unknown fw_mark for ${iface}!\\n"
-#	param="-t mangle -A VPR_${chain} -j MARK --set-xmark ${mark}/${fwMask}"
-	if [ "${proto//tcp}" != "$proto" ]; then
-		param="-t mangle -I VPR_${chain} 1 -j MARK --set-xmark ${mark}/${fwMask}"
-		[ -n "$laddr" ] && param="$param -s $laddr $appendLocalPolicy"
-		[ -n "$lport" ] && param="$param -p tcp -m multiport --sport ${lport//-/:}"
-		[ -n "$raddr" ] && param="$param -d $raddr $appendRemotePolicy"
-		[ -n "$rport" ] && param="$param -p tcp -m multiport --dport ${rport//-/:}"
-		[ -n "$comment" ] && param="$param -m comment --comment $(echo "$comment" | tr '[\. ~`!@#$%^&*()\+/,<>?//;:]' '_')"
-		ipt "$param" || processPolicyStatus="${processPolicyStatus}${_ERROR_}: iptables $param\\n"
+	if [ -z "$mark" ]; then
+		processPolicyStatus="${processPolicyStatus}${_ERROR_}: unknown fw_mark for ${iface}!\\n"
+		return 0
 	fi
-	if [ "${proto//udp}" != "$proto" ]; then
-		param="-t mangle -I VPR_${chain} 1 -j MARK --set-xmark ${mark}/${fwMask}"
-		[ -n "$laddr" ] && param="$param -s $laddr $appendLocalPolicy"
-		[ -n "$lport" ] && param="$param -p udp -m multiport --sport ${lport//-/:}"
-		[ -n "$raddr" ] && param="$param -d $raddr $appendRemotePolicy"
-		[ -n "$rport" ] && param="$param -p udp -m multiport --dport ${rport//-/:}"
-		[ -n "$comment" ] && param="$param -m comment --comment $(echo "$comment" | tr '[\. ~`!@#$%^&*()\+/,<>?//;:]' '_')"
-		ipt "$param" || processPolicyStatus="${processPolicyStatus}${_ERROR_}: iptables $param\\n"
-	fi
-	return 0
-}
 
-insert_phys_dev_policy() {
-	local comment="$1" iface="$2" phys_dev="${3:1}" lport="$4" raddr="$5" rport="$6" proto="${7:-tcp}" chain="${8:-PREROUTING}"
-	local mark=$(eval echo "\$mark_$iface") param
-	# add code to handle wrong chain for physical device
-	[ -z "$mark" ] && processPolicyStatus="${processPolicyStatus}${_ERROR_}: unknown fw_mark for ${iface}!\\n"
-	if [ "${proto//tcp}" != "$proto" ]; then
-		param="-t mangle -I VPR_${chain} 1 -j MARK --set-xmark ${mark}/${fwMask}"
-		[ -n "$phys_dev" ] && param="$param -i $phys_dev $appendLocalPolicy"
-		[ -n "$lport" ] && param="$param -p tcp -m multiport --sport ${lport//-/:}"
-		[ -n "$raddr" ] && param="$param -d $raddr $appendRemotePolicy"
-		[ -n "$rport" ] && param="$param -p tcp -m multiport --dport ${rport//-/:}"
-		[ -n "$comment" ] && param="$param -m comment --comment $(echo "$comment" | tr '[\. ~`!@#$%^&*()\+/,<>?//;:]' '_')"
-		ipt "$param" || processPolicyStatus="${processPolicyStatus}${_ERROR_}: iptables $param\\n"
-	fi
-	if [ "${proto//udp}" != "$proto" ]; then
-		param="-t mangle -I VPR_${chain} 1 -j MARK --set-xmark ${mark}/${fwMask}"
-		[ -n "$phys_dev" ] && param="$param -i $phys_dev $appendLocalPolicy"
-		[ -n "$lport" ] && param="$param -p udp -m multiport --sport ${lport//-/:}"
-		[ -n "$raddr" ] && param="$param -d $raddr $appendRemotePolicy"
-		[ -n "$rport" ] && param="$param -p udp -m multiport --dport ${rport//-/:}"
-		[ -n "$comment" ] && param="$param -m comment --comment $(echo "$comment" | tr '[\. ~`!@#$%^&*()\+/,<>?//;:]' '_')"
-		ipt "$param" || processPolicyStatus="${processPolicyStatus}${_ERROR_}: iptables $param\\n"
-	fi
+	for i in tcp udp; do
+		if [ "${proto//$i}" != "$proto" ]; then
+#			param="-t mangle $insertOption VPR_${chain} -j MARK --set-xmark ${mark}/${fwMask} -p $i"
+			param="-t mangle -I VPR_${chain} -j MARK --set-xmark ${mark}/${fwMask} -p $i"
+			if [ -n "$laddr" ]; then
+				if is_phys_dev "$laddr"; then
+					param="$param -i ${laddr:1}"
+				elif is_mac_address "$laddr"; then
+					param="$param -m mac --mac-source $laddr"
+				else
+					param="$param -s $laddr"
+				fi
+				param="$param $appendLocalPolicy"
+			fi
+			[ -n "$lport" ] && param="$param -m multiport --sport ${lport//-/:}"
+			[ -n "$raddr" ] && param="$param -d $raddr $appendRemotePolicy"
+			[ -n "$rport" ] && param="$param -m multiport --dport ${rport//-/:}"
+			[ -n "$comment" ] && param="$param -m comment --comment $(echo "$comment" | tr '[\. ~`!@#$%^&*()\+/,<>?//;:]' '_')"
+			ipt "$param" || processPolicyStatus="${processPolicyStatus}${_ERROR_}: iptables $param\\n"
+		fi
+	done
 	return 0
 }
 
@@ -303,60 +299,60 @@ r_process_policy(){
 	local comment="$1" iface="$2" laddr="$3" lport="$4" raddr="$5" rport="$6" proto="$7" chain="$8" resolved_laddr resolved_raddr i ipsFailFlag
 	if [ "${laddr//[ ;\{\}]}" != "$laddr" ]; then
 		for i in $(echo "$laddr" | tr " ;{}" "\\n"); do [ -n "$i" ] && r_process_policy "$comment" "$iface" "$i" "$lport" "$raddr" "$rport" "$proto" "$chain"; done
+		return 0
 	elif [ "${lport//[ ;\{\}]}" != "$lport" ]; then
 		for i in $(echo "$lport" | tr " ;{}" "\\n"); do [ -n "$i" ] && r_process_policy "$comment" "$iface" "$laddr" "$i" "$raddr" "$rport" "$proto" "$chain"; done
+		return 0
 	elif [ "${raddr//[ ;\{\}]}" != "$raddr" ]; then
 		for i in $(echo "$raddr" | tr " ;{}" "\\n"); do [ -n "$i" ] && r_process_policy "$comment" "$iface" "$laddr" "$lport" "$i" "$rport" "$proto" "$chain"; done
+		return 0
 	elif [ "${rport//[ ;\{\}]}" != "$rport" ]; then
 		for i in $(echo "$rport" | tr " ;{}" "\\n"); do [ -n "$i" ] && r_process_policy "$comment" "$iface" "$laddr" "$lport" "$raddr" "$i" "$proto" "$chain"; done
-	else
-		if is_tor "$iface"; then
-			insert_tor_policy "$comment" "$iface" "$laddr" "$lport" "$raddr" "$rport" "$proto" "$chain"
-		elif is_netmask "$laddr" || is_netmask "$raddr"; then
-			insert_policy "$comment" "$iface" "$laddr" "$lport" "$raddr" "$rport" "$proto" "$chain"
-		elif [ -n "$laddr" ] && [ -z "$lport" ] && [ -z "$raddr" ] && [ -z "$rport" ] && [ "$proto" == "tcp" ] && [ "$chain" == "PREROUTING" ]; then
-			if is_phys_dev "$laddr"; then
-				insert_phys_dev_policy "$comment" "$iface" "$laddr" "$lport" "$raddr" "$rport" "$proto" "$chain"
-			else
-				for i in $(resolveip "$laddr"); do
-					ipr "$comment" "$iface" "$i" || insert_policy "$comment" "$iface" "$i" "$lport" "$raddr" "$rport" "$proto" "$chain"
-				done
-			fi
-		elif [ -z "$laddr" ] && [ -z "$lport" ] && [ -n "$raddr" ] && [ -z "$rport" ] && [ "$proto" == "tcp" ] && [ "$chain" == "PREROUTING" ]; then
-			if is_ipv6 "$raddr"; then
-				ips "add" "${iface}" "$raddr" "${comment}: $raddr" || ipsFailFlag=1;
-			elif is_domain "$raddr"; then
-				if ! ips "add_dnsmasq" "${iface}" "$raddr" "${comment}"; then
-					for i in $(resolveip "$raddr"); do ips "add" "${iface}" "$raddr" "${comment}: $raddr" || ipsFailFlag=1; done
-				fi
-			elif is_ipv4 "$raddr"; then
-				ips "add" "${iface}" "$raddr" "${comment}: $raddr" || ipsFailFlag=1
-			else
-				ipsFailFlag=1
+		return 0
+	fi
+
+	# start non-recursive processing 
+	# process TOR, netmask, physical device and mac-address separately, so we don't send them to resolveip
+	if is_tor "$iface"; then
+		insert_tor_policy "$comment" "$iface" "$laddr" "$lport" "$raddr" "$rport" "$proto" "$chain"
+	elif is_netmask "$laddr" || is_netmask "$raddr"; then
+		insert_policy "$comment" "$iface" "$laddr" "$lport" "$raddr" "$rport" "$proto" "$chain"
+	elif is_phys_dev "$laddr"; then
+		insert_policy "$comment" "$iface" "$laddr" "$lport" "$raddr" "$rport" "$proto" "$chain"
+	elif is_mac_address "$laddr"; then
+		insert_policy "$comment" "$iface" "$laddr" "$lport" "$raddr" "$rport" "$proto" "$chain"
+	elif [ -n "$laddr" ] && [ -z "$lport" ] && [ -z "$raddr" ] && [ -z "$rport" ] && [ "$proto" == "tcp" ] && [ "$chain" == "PREROUTING" ]; then
+		# see if we can add iprule instead of the iptable entry
+		for i in $(resolveip "$laddr"); do
+			ipr "$comment" "$iface" "$i" || insert_policy "$comment" "$iface" "$i" "$lport" "$raddr" "$rport" "$proto" "$chain"
+		done
+	elif [ -z "$laddr" ] && [ -z "$lport" ] && [ -n "$raddr" ] && [ -z "$rport" ] && [ "$proto" == "tcp" ] && [ "$chain" == "PREROUTING" ]; then
+		# see if we can add ipset or dnsmasq ipset instead of the iptable entry
+		if is_domain "$raddr"; then
+			if ! ips "add_dnsmasq" "${iface}" "$raddr" "${comment}"; then
+				for i in $(resolveip "$raddr"); do ips "add" "${iface}" "$raddr" "${comment}: $raddr" || ipsFailFlag=1; done
 			fi
 		else
-			ipsFailFlag=1
+			ips "add" "${iface}" "$raddr" "${comment}: $raddr" || ipsFailFlag=1
 		fi
-		if [ -n "$ipsFailFlag" ]; then # either ipset above has failed or it's a non-ispet compatible policy
-			if is_netmask "$laddr" || is_netmask "$raddr"; then
-				insert_policy "$comment" "$iface" "$laddr" "$lport" "$raddr" "$rport" "$proto" "$chain"
-			else
-				[ -n "$laddr" ] && resolved_laddr="$(resolveip "$laddr")"
-				[ -n "$raddr" ] && resolved_raddr="$(resolveip "$raddr")"
-				if [ "$resolved_laddr" != "$laddr" ]; then
-					for i in $resolved_laddr; do [ -n "$i" ] && r_process_policy "$comment $laddr" "$iface" "$i" "$lport" "$raddr" "$rport" "$proto" "$chain"; done
-				elif [ "$resolved_raddr" != "$raddr" ]; then
-						for i in $resolved_raddr; do [ -n "$i" ] && r_process_policy "$comment $raddr" "$iface" "$laddr" "$lport" "$i" "$rport" "$proto" "$chain"; done
-				else
-					insert_policy "$comment" "$iface" "$laddr" "$lport" "$raddr" "$rport" "$proto" "$chain"
-				fi
-			fi
+	else
+		ipsFailFlag=1
+	fi
+	if [ -n "$ipsFailFlag" ]; then
+		[ -n "$laddr" ] && resolved_laddr="$(resolveip "$laddr")"
+		[ -n "$raddr" ] && resolved_raddr="$(resolveip "$raddr")"
+		if [ -n "$resolved_laddr" ] && [ "$resolved_laddr" != "$laddr" ]; then
+			for i in $resolved_laddr; do [ -n "$i" ] && r_process_policy "$comment $laddr" "$iface" "$i" "$lport" "$raddr" "$rport" "$proto" "$chain"; done
+		elif [ -n "$resolved_raddr" ] && [ "$resolved_raddr" != "$raddr" ]; then
+				for i in $resolved_raddr; do [ -n "$i" ] && r_process_policy "$comment $raddr" "$iface" "$laddr" "$lport" "$i" "$rport" "$proto" "$chain"; done
+		else
+			insert_policy "$comment" "$iface" "$laddr" "$lport" "$raddr" "$rport" "$proto" "$chain"
 		fi
 	fi
 }
 
 process_policy(){
-	local name comment iface laddr lport raddr rport param mark processPolicyStatus proto chain
+	local name comment iface laddr lport raddr rport param mark processPolicyStatus proto chain enabled
 	config_get comment "$1" 'comment'
 	config_get name    "$1" 'name' 'blank'
 	config_get iface   "$1" 'interface'
@@ -366,6 +362,9 @@ process_policy(){
 	config_get rport   "$1" 'remote_port'
 	config_get proto   "$1" 'proto' 'tcp'
 	config_get chain   "$1" 'chain' 'PREROUTING'
+	config_get_bool enabled "$1" 'enabled' 1
+
+	[ "$enabled" -gt 0 ] || return 0
 
 	comment="${comment:-$name}"
 	output 2 "Routing '$comment' via $iface "
@@ -451,15 +450,15 @@ table_create(){
 		if [ $ipv4_set -ne 0 ] || [ $ipv6_set -ne 0 ]; then
 			dscp="$(uci -q get "${packageName}".config."${iface}"_dscp)"
 			if [ "${dscp:-0}" -ge 1 ] && [ "${dscp:-0}" -le 63 ]; then
-				ipt -t mangle -I VPR_PREROUTING 1 -m dscp --dscp "${dscp}" -j MARK --set-xmark "${mark}/${fwMask}" || s=1
+				ipt -t mangle -I VPR_PREROUTING -m dscp --dscp "${dscp}" -j MARK --set-xmark "${mark}/${fwMask}" || s=1
 			fi
 			if [ $ipsetEnabled -ne 0 ]; then
 				ips 'create' "${iface}" 'hash:net family inet comment' && ips 'flush' "${iface}" || s=1
-				[ $ipv4_set -ne 0 ] && { ipt -t mangle -I VPR_PREROUTING 1 -m set --match-set "${iface}" dst -j MARK --set-xmark "${mark}/${fwMask}" || s=1; }
-				[ $ipv6_set -ne 0 ] && { ipt -t mangle -I VPR_PREROUTING 1 -m set --match-set "${iface}6" dst -j MARK --set-xmark "${mark}/${fwMask}" || s=1; }
+				[ $ipv4_set -ne 0 ] && { ipt -t mangle -I VPR_PREROUTING -m set --match-set "${iface}" dst -j MARK --set-xmark "${mark}/${fwMask}" || s=1; }
+				[ $ipv6_set -ne 0 ] && { ipt -t mangle -I VPR_PREROUTING -m set --match-set "${iface}6" dst -j MARK --set-xmark "${mark}/${fwMask}" || s=1; }
 			fi
 			if [ "$iface" = "$icmpIface" ]; then
-				ipt -t mangle -I VPR_OUTPUT 1 -p icmp -j MARK --set-xmark "${mark}/${fwMask}" || s=1
+				ipt -t mangle -I VPR_OUTPUT -p icmp -j MARK --set-xmark "${mark}/${fwMask}" || s=1
 			fi
 		fi
 	fi
@@ -553,6 +552,40 @@ convert_config(){
 	done
 }
 
+check_config(){ local en; config_get_bool en "$1" 'enabled' 1; [ "$en" -gt 0 ] && _cfg_enabled=0; }
+is_config_enabled(){
+	local cfg="$1" _cfg_enabled=1
+	[ -n "$1" ] || return 1
+	config_load "$packageName"
+	config_foreach check_config "$cfg"
+	return "$_cfg_enabled"
+}
+
+process_user_file(){
+	local path enabled shellBin="${SHELL:-/bin/ash}"
+	config_get_bool enabled "$1" 'enabled' 1
+	config_get      path    "$1" 'path'
+	[ "$enabled" -gt 0 ] || return 0
+	if [ ! -s "$path" ]; then
+		errorStatusSummary="${errorStatusSummary}${_ERROR_}: Custom user file '$path' not found or empty\\n"
+		output_fail
+		return 1
+	fi
+	if ! $shellBin -n "$path"; then
+		errorStatusSummary="${errorStatusSummary}${_ERROR_}: Syntax error in custom user file '$path'\\n"
+		output_fail
+		return 1
+	fi
+	if ! . "$path"; then
+		errorStatusSummary="${errorStatusSummary}${_ERROR_}: Error running custom user file '$path'\\n"
+		output_fail
+		return 1
+	else
+		output_ok
+		return 0
+	fi
+}
+
 start_service() {
 	local serviceStatusSummary errorStatusSummary dnsmasqStoredHash dnsmasqNewHash i modprobeStatus=0
 	convert_config
@@ -575,20 +608,23 @@ start_service() {
 			return 1
 		fi
 
-		ipt -t mangle -N VPR_PREROUTING; ipt -t mangle -I PREROUTING 1 -m mark --mark "0x00/${fwMask}" -j VPR_PREROUTING;
-		ipt -t mangle -N VPR_FORWARD; ipt -t mangle -I FORWARD 1 -m mark --mark "0x00/${fwMask}" -j VPR_FORWARD;
-		ipt -t mangle -N VPR_INPUT; ipt -t mangle -I INPUT 1 -m mark --mark "0x00/${fwMask}" -j VPR_INPUT;
-		ipt -t mangle -N VPR_OUTPUT; ipt -t mangle -I OUTPUT 1 -m mark --mark "0x00/${fwMask}" -j VPR_OUTPUT;
+		ipt -t mangle -N VPR_PREROUTING; ipt -t mangle "$insertOption" PREROUTING -m mark --mark "0x00/${fwMask}" -j VPR_PREROUTING;
+		ipt -t mangle -N VPR_FORWARD; ipt -t mangle "$insertOption" FORWARD -m mark --mark "0x00/${fwMask}" -j VPR_FORWARD;
+		ipt -t mangle -N VPR_INPUT; ipt -t mangle "$insertOption" INPUT -m mark --mark "0x00/${fwMask}" -j VPR_INPUT;
+		ipt -t mangle -N VPR_OUTPUT; ipt -t mangle "$insertOption" OUTPUT -m mark --mark "0x00/${fwMask}" -j VPR_OUTPUT;
 
 		output 1 'Processing interfaces '
 		config_load 'network'; config_foreach process_interface 'interface' 'create';
 		output 1 '\n'
-		output 1 'Processing policies '
-		config_load $packageName; config_foreach process_policy 'policy';
-		output 1 '\n'
-		if [ -s "$userFile" ]; then
-			output 1 'Processing user file '
-			. "$userFile" && output_okn || output_failn
+		if is_config_enabled 'policy'; then
+			output 1 'Processing policies '
+			config_load $packageName; config_foreach process_policy 'policy';
+			output 1 '\n'
+		fi
+		if is_config_enabled 'include'; then
+			output 1 'Processing user file(s) '
+			config_load $packageName; config_foreach process_user_file 'include';
+			output 1 '\n'
 		fi
 
 		if [ -s "$dnsmasqFile" ]; then

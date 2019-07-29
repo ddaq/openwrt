@@ -150,10 +150,12 @@ The ```vpn-policy-routing``` settings are split into ```basic``` and ```advanced
 |Advanced|supported_interface|list/string||Allows to specify the space-separated list of interface names (in lower case) to be explicitly supported by the ```vpn-policy-routing``` service. Can be useful if your OpenVPN tunnels have dev option other than tun\* or tap\*.|
 |Advanced|ignored_interface|list/string||Allows to specify the space-separated list of interface names (in lower case) to be ignored by the ```vpn-policy-routing``` service. Can be useful if running both VPN server and VPN client on the router.|
 |Advanced|boot_timeout|number|30|Allows to specify the time (in seconds) for ```vpn-policy-routing``` service to wait for WAN gateway discovery on boot. Can be useful on devices with ADSL modem built in.|
+|Advanced|iptables_rule_option|append/insert|append|Allows to specify the iptables parameter for rules: ```-A``` for ```append``` and ```-I``` for ```insert```. Append is generally speaking more compatible with other packages/firewall rules. Recommended to change to ```insert``` only to improve compatibility with the ```mwan3``` package.|
 |Advanced|iprule_enabled|boolean|0|Add an ```ip rule```, not an ```iptables``` entry for policies with just the local address. Use with caution to manipulate policies priorities.|
+|Advanced|enable_control|boolean|0|Shows ```Enable``` checkbox column for policies, allowing to quickly enable/disable specific policy without deleting it.|
 |Advanced|proto_control|boolean|0|Shows ```Protocol``` column for policies, allowing to specify ```TCP``` (default), ```UDP``` or ```TCP/UDP``` protocol for ```iptables``` rules for policies.|
 |Advanced|chain_control|boolean|0|Shows ```Chain``` column for policies, allowing to specify ```PREROUTING``` (default), ```FORWARD```, ```INPUT```, or ```OUTPUT``` chain for ```iptables``` rules for policies.|
-|Advanced|icmp_interface|string||Set the default ICMP protocol interface (interface name in lower case). Requires ```output_chain_enabled=1```. This setting is hidden in Web UI unless ```Create OUTPUT Chain``` is enabled. Use with caution.|
+|Advanced|icmp_interface|string||Set the default ICMP protocol interface (interface name in lower case). Use with caution.|
 |Advanced|wan_tid|integer|201|Starting (WAN) Table ID number for tables created by the ```vpn-policy-routing``` service.|
 |Advanced|wan_mark|hexadecimal|0x010000|Starting (WAN) fw mark for marks used by the ```vpn-policy-routing``` service. High starting mark is used to avoid conflict with SQM/QoS, this can be changed by user. Change with caution together with ```fw_mask```.|
 |Advanced|fw_mask|hexadecimal|0xff0000|FW Mask used by the ```vpn-policy-routing``` service. High mask is used to avoid conflict with SQM/QoS, this can be changed by user. Change with caution together with ```wan_mark```.|
@@ -167,8 +169,9 @@ Each policy may have a combination of the options below, please note that the ``
 |Option|Default|Description|
 | --- | --- | --- |
 |name||Policy name, it **must** be set.|
+|enabled|1|Enable/disable policy. To display the ```Enable``` checkbox column for policies in the WebUI, make sure to select ```Enabled``` for ```Show Enable Column``` in the ```Advanced``` tab.|
 |interface||Policy interface, it **must** be set.|
-|local_address||List of space-separated local/source IP addresses, CIDRs or hostnames. You can also specify a local interface (like a specially created wlan) prepended by an ```@``` symbol.|
+|local_address||List of space-separated local/source IP addresses, CIDRs, hostnames or mac addresses (colon-separated). You can also specify a local interface (like a specially created wlan) prepended by an ```@``` symbol.|
 |local_port||List of space-separated local/source ports or port-ranges.|
 |remote_address||List of space-separated remote/target IP addresses, CIDRs or hostnames/domain names.|
 |remote_port||List of space-separated remote/target ports or port-ranges.|
@@ -176,6 +179,8 @@ Each policy may have a combination of the options below, please note that the ``
 |chain|PREROUTING|Policy chain, can be either ```PREROUTING```, ```FORWARDING```, ```INPUT``` or ```OUTPUT```. This setting is case-sensitive. To display the ```Chain``` column for policies in the WebUI, make sure to select ```Enabled``` for ```Show Chain Column``` in the ```Advanced``` tab.|
 
 ### Example Policies
+
+#### Plex Media Server
 
 The following policies route Plex Media Server traffic via WAN. Please note, you'd still need to open the port in the firewall either manually or with the UPnP.
 
@@ -191,6 +196,8 @@ config policy
   option remote_address 'plex.tv my.plexapp.com'
 ```
 
+#### Emby Media Server
+
 The following policy route Emby traffic via WAN. Please note, you'd still need to open the port in the firewall either manually or with the UPnP.
 
 ```text
@@ -205,6 +212,8 @@ config policy
   option remote_address 'emby.media app.emby.media tv.emby.media'
 ```
 
+#### Logmein Hamachi
+
 The following policy routes LogMeIn Hamachi zero-setup VPN traffic via WAN.
 
 ```text
@@ -213,6 +222,8 @@ config policy
   option interface 'wan'
   option remote_address '25.0.0.0/8 hamachi.cc hamachi.com logmein.com'
 ```
+
+#### SIP Port
 
 The following policy routes standard SIP port traffic via WAN for both TCP and UDP protocols.
 
@@ -224,10 +235,12 @@ config policy
   option proto 'tcp udp'
 ```
 
-The following policy allows you to run an OpenVPN server on router (at port 1194) if you're already running a tunnel with default routing set.
+#### Local OpenVPN Server (Scenario 1)
+
+If the VPN Client on your router is used as default routing (for the whole internet), you'll need to run local OpenVPN Server with TCP protocol (at port 1194) and apply the following settings:
 
 ```text
-option append_local_rules '! -d 192.168.200.0/24' # from your VPN Server settings
+list ignored_interface 'vpnserver'
 config policy
   option name 'OpenVPN Server'
   option interface 'wan'
@@ -235,7 +248,29 @@ config policy
   option chain 'OUTPUT'
 ```
 
-The following policy should route US Netflix traffic via WAN. For capturing international Netflix domain names, you can refer to [these getdomainnames.sh-specific instructions](https://github.com/Xentrk/netflix-vpn-bypass#ipset_netflix_domainssh) and don't forget to adjust them for OpenWrt.
+The relevant parts of the OpenVPN Server config would be:
+
+```text
+config openvpn 'vpnserver'
+        option port '1194'
+        option proto 'tcp'
+        option server '192.168.200.0 255.255.255.0'
+```
+
+#### Local OpenVPN Server (Scenario 2)
+
+If the VPN Client is **not** used as default routing and you selectively pick local devices to use the VPN tunnel, you will need to apply the following settings:
+
+```text
+list ignored_interface 'vpnserver'
+option append_local_rules '! -d 192.168.200.0/24'
+```
+
+Refer to the OpenVPN Server config in the example above.
+
+#### Netflix Domains
+
+The following policy should route US Netflix traffic via WAN. For capturing international Netflix domain names, you can refer to [these getdomainnames.sh-specific instructions](https://github.com/Xentrk/netflix-vpn-bypass#ipset_netflix_domainssh) and don't forget to adjust them for OpenWrt. This may not work if Netflix changes things. For more reliable US Netflix routing you may want to consider using [custom user files](#custom-user-files).
 
 ```text
 config policy
@@ -243,6 +278,8 @@ config policy
   option interface 'wan'
   option remote_address 'amazonaws.com netflix.com nflxext.com nflximg.net nflxso.net nflxvideo.net dvd.netflix.com'
 ```
+
+#### Single IP, IP Range, Local Machine, Local MAC Address
 
 The following policies route traffic from a single IP address, a range of IP addresses or a local machine (requires definition as DHCP host record in DHCP config) via WAN.
 
@@ -261,26 +298,35 @@ config policy
   option name 'Local Machine'
   option interface 'wan'
   option local_address 'dell-ubuntu'
+
+config policy
+  option name 'Local MAC Address'
+  option interface 'wan'
+  option local_address '00:0F:EA:91:04:08'
 ```
 
-### Custom user files
+### Custom User Files
 
-If the ```/etc/vpn-policy-routing.user``` file is found, the service will load and execute it after processing uci-based policies and before restarting ```dnsmasq```.
+If the custom user file includes are set, the service will load and execute them after setting up ip tables and ipsets, processing policies and before restarting ```dnsmasq```. This allows, for example, to add large numbers of domains/IP addresses to ipsets without manually adding all of them to the config file.
 
-Two example custom user-files are provided with the ```vpn-policy-routing``` version 0.0.6 and above: ```/etc/vpn-policy-routing.aws.user``` and ```/etc/vpn-policy-routing.netflix.user```. They are provided to pull the AWS and Netflix IP addresses into the ```wan``` ipset respectively. 
+Two example custom user-files are provided: ```/etc/vpn-policy-routing.aws.user``` and ```/etc/vpn-policy-routing.netflix.user```. They are provided to pull the AWS and Netflix IP addresses into the ```wan``` ipset respectively.
 
-To start using either one of them, run:
+#### Custom User Files Include Options
 
-```sh
-cp /etc/vpn-policy-routing.aws.user /etc/vpn-policy-routing.user 
+|Option|Default|Description|
+| --- | --- | --- |
+|path||Path to a custom user file (in a form of shell script), it **must** be set.|
+|enabled|1|Enable/disable setting.|
+
+#### Example Includes
+
+```text
+config include
+  option path '/etc/vpn-policy-routing.netflix.user'
+
+config include
+  option path '/etc/vpn-policy-routing.aws.user'
 ```
-
-or
-
-```sh
-cp /etc/vpn-policy-routing.netflix.user /etc/vpn-policy-routing.user 
-```
-
 
 ### Multiple OpenVPN Clients
 
@@ -362,4 +408,4 @@ If you don't want to post the ```/etc/init.d/vpn-policy-routing status``` output
 
 ## Thanks
 
-I'd like to thank everyone who helped create, test and troubleshoot this service. Without contributions from [@hnyman](https://github.com/hnyman), [@dibdot](https://github.com/dibdot), [@danrl](https://github.com/danrl), [@tohojo](https://github.com/tohojo), [@cybrnook](https://github.com/cybrnook), [@nidstigator](https://github.com/nidstigator), [@AndreBL](https://github.com/AndreBL) and [@dz0ny](https://github.com/dz0ny) and rigorous testing by [@dziny](https://github.com/dziny), [@bluenote73](https://github.com/bluenote73), [@buckaroo](https://github.com/pgera), [@Alexander-r](https://github.com/Alexander-r) and [n8v8R](https://github.com/n8v8R) it wouldn't have been possible. Wireguard support is courtesy of [Mullvad](https://www.mullvad.net).
+I'd like to thank everyone who helped create, test and troubleshoot this service. Without contributions from [@hnyman](https://github.com/hnyman), [@dibdot](https://github.com/dibdot), [@danrl](https://github.com/danrl), [@tohojo](https://github.com/tohojo), [@cybrnook](https://github.com/cybrnook), [@nidstigator](https://github.com/nidstigator), [@AndreBL](https://github.com/AndreBL) and [@dz0ny](https://github.com/dz0ny) and rigorous testing/bugreporting by [@dziny](https://github.com/dziny), [@bluenote73](https://github.com/bluenote73), [@buckaroo](https://github.com/pgera), [@Alexander-r](https://github.com/Alexander-r) and [n8v8R](https://github.com/n8v8R) it wouldn't have been possible. Wireguard support is courtesy of [Mullvad](https://www.mullvad.net).
