@@ -194,6 +194,8 @@ include_ac_rules() {
 	$(gen_ipset_ext_rule)
 	-A SS_SPEC_WAN_AC -m set --match-set ss_spec_dst_fw dst -j SS_SPEC_WAN_FW
 	-A SS_SPEC_WAN_AC -m set --match-set ss_spec_dst_bp dst -j RETURN
+	-A SS_SPEC_WAN_AC -m set --match-set ss-cmcc dst -j RETURN
+	-A SS_SPEC_WAN_AC -m set --match-set ss-telecom dst -j RETURN
 	-A SS_SPEC_WAN_AC -j SS_SPEC_WAN_FW
 	$(gen_prerouting_rules $protocol)
 	COMMIT
