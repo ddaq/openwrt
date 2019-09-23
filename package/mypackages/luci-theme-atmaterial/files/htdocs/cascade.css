@@ -290,6 +290,7 @@ input:not(.cbi-button):focus,
 	border-color: #09c;
 }
 
+.cbi-dropdown,
 select[multiple="multiple"] {
 	height: auto;
 }
@@ -813,6 +814,7 @@ label {
 #cbi-network > .cbi-section-node,
 #cbi-wireless > .cbi-section-node,
 #cbi-wireless > #wifi_assoclist_table,
+[data-tab-title],
 [data-page^="admin-system-admin"]:not(.node-main-login) .cbi-map:not(#cbi-dropbear),
 [data-page="admin-system-opkg"] #maincontent > .container {
     margin: 10px 0 0 0;
@@ -832,6 +834,23 @@ label {
     box-shadow: 0 1px 1px rgba(0,0,0,.05);
     border-radius: 4px;
     -webkit-overflow-scrolling: touch;
+}
+
+.cbi-modal .cbi-section,
+.cbi-section .cbi-section {
+	padding: 0;
+	box-shadow: none;
+}
+
+.cbi-modal .cbi-tabmenu {
+	margin-left: 0;
+}
+
+.cbi-map-descr,
+.cbi-section-descr {
+	font-size: small;
+	margin-bottom:10px;
+	padding-left:5px;
 }
 
 .cbi-map-descr + fieldset {
@@ -862,15 +881,25 @@ fieldset > fieldset,
     margin: 0;
 }
 
+.cbi-section > h3:first-child,
+.cbi-section > h4:first-child,
+.cbi-section > p:first-child,
+[data-tab-title] > h3:first-child,
+[data-tab-title] > h4:first-child,
+[data-tab-title] > p:first-child {
+	padding-top: 1rem;
+}
+
 table {
     border-spacing: 0;
     border-collapse: collapse;
 }
 
-table, .table {
-    overflow-y: hidden;
-    width: 100%;
-    border: 1px solid #eee;
+table,
+.table {
+	overflow-y: hidden;
+	width: 100%;
+	border: 1px solid #eee;
 }
 
 table > tbody > tr > td,
@@ -1218,16 +1247,19 @@ form[method="post"] + form[method="post"],
 }
 
 [data-tab-title] {
+	overflow: hidden;
 	height: 0;
 	opacity: 0;
-	overflow: hidden;
+	margin: 0;
+	padding: 0rem 1rem !important;
 }
 
 [data-tab-active="true"] {
-	opacity: 1;
-	height: auto;
 	overflow: visible;
+	height: auto;
+	opacity: 1;
 	transition: opacity .25s ease-in;
+	margin: inherit !important;
 }
 
 .cbi-section[id] .cbi-section-remove:nth-of-type(4n+3),
@@ -1386,14 +1418,7 @@ form[method="post"] + form[method="post"],
 	margin: 0;
 }
 
-/* desc */
-.cbi-section-descr,
-.cbi-map-descr {
-	font-size: small;
-	margin-bottom:10px;
-	padding-left:5px;
-}
-
+/* lists */
 .cbi-dynlist {
 	line-height: 1.3;
 	flex-direction: column;
@@ -1648,6 +1673,8 @@ form[method="post"] + form[method="post"],
 .modal > * {
 	line-height: normal;
 	flex-basis: 100%;
+	margin-bottom: .5em;
+	max-width: 100%;
 }
 
 .modal > pre,
@@ -1701,6 +1728,11 @@ form[method="post"] + form[method="post"],
 
 .modal .spinning {
 	margin-bottom: 2em;
+}
+
+.modal.cbi-modal {
+	max-width: 90%;
+	max-height: none;
 }
 
 body.modal-overlay-active {
@@ -1875,6 +1907,7 @@ td > .ifacebadge,
 
 .network-status-table .ifacebox-body > span {
 	flex: 10 10 auto;
+	height: 100%;
 }
 
 .network-status-table .ifacebox-body > div {
@@ -2013,13 +2046,13 @@ td > .ifacebadge,
 }
 
 .ifacebox {
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 2px rgba(0, 0, 0, 0.2);
-    border-bottom: 1px solid #ccc;
-    background-color: #f9f9f9;
-    display: inline-flex;
-    flex-direction: column;
-    line-height: 1.2em;
-    min-width: 100px;
+	line-height: 1.25;
+	display: inline-flex;
+	flex-direction: column;
+	min-width: 100px;
+	border-bottom: thin solid #ccc;
+	background-color: #f9f9f9;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4), 0 1px 2px rgba(0, 0, 0, .2);
 }
 
 .ifacebox-head {
@@ -2047,7 +2080,7 @@ td > .ifacebadge,
 .zonebadge .ifacebadge {
 	margin: .1rem .2rem;
 	padding: .2rem .3rem;
-	border: 1px solid #6c6c6c;
+	border: thin solid #6c6c6c;
 }
 
 .zonebadge > input[type="text"] {
@@ -2354,12 +2387,8 @@ header > .fill > .container > .pull-right > * {
 	}
 }
 
-/* fix status overview */
-.node-status-overview > .main fieldset:nth-child(4) .td:nth-child(2) {
-	white-space: normal;
-}
-
-/* fix status processes */
+/* fix status */
+.node-status-overview > .main fieldset:nth-child(4) .td:nth-child(2),
 .node-status-processes > .main .table .tr .td:nth-child(3) {
 	white-space: normal;
 }
@@ -2380,11 +2409,11 @@ header > .fill > .container > .pull-right > * {
 }
 
 /* samba */
-#cbi-samba .cbi-value-last .cbi-value-field {
+#cbi-samba [data-tab="template"] .cbi-value-field {
 	display: block;
 }
 
-#cbi-samba .cbi-value-last .cbi-value-title {
+#cbi-samba [data-tab="template"] .cbi-value-title {
 	width: auto;
 	padding-bottom: .6rem;
 }
@@ -2498,7 +2527,8 @@ header > .fill > .container > .pull-right > * {
 	display: block;
 }
 
-#cbi-firewall-zone .td.cbi-section-actions {
+#cbi-firewall-zone .td,
+#cbi-network-switch_vlan .td {
 	width: 100%;
 }
 
@@ -2534,6 +2564,7 @@ body.lang_pl.node-main-login .cbi-value-title {
 /* custom commands */
 .commandbox {
 	width: 24% !important;
+	margin: 10px 0 0 10px !important;
 	padding: .5rem 1rem;
 	border-bottom: thin solid #ccc;
 	background: #eee;
@@ -2554,14 +2585,18 @@ body.lang_pl.node-main-login .cbi-value-title {
 
 .commandbox code {
 	position: absolute;
-	overflow-x: hidden;
-	overflow-y: auto;
+	overflow: hidden;
 	max-width: 60%;
-	max-height: 55px;
-	margin-top: -3px;
 	margin-left: 4px;
 	padding: 2px 3px;
+	white-space: nowrap;
 	text-overflow: ellipsis;
+}
+
+.commandbox code:hover {
+	overflow-y: auto;
+	max-height: 50px;
+	white-space: normal;
 }
 
 .commandbox p:first-of-type {
@@ -2586,6 +2621,7 @@ body.lang_pl.node-main-login .cbi-value-title {
 	max-width: 40%;
 	margin: 0;
 	animation: anim-fade-in 1.5s forwards;
+	word-break: break-word;
 	opacity: 0;
 }
 
@@ -2952,7 +2988,7 @@ body.lang_pl.node-main-login .cbi-value-title {
 	}
 
 	#maincontent > .container {
-		margin: 0 1rem 1.5rem 1rem;
+		margin: 0 .5rem 1.5rem .5rem;
 	}
 
 	.main > .main-left > .nav > .slide > .menu {
@@ -3106,13 +3142,40 @@ body.lang_pl.node-main-login .cbi-value-title {
 		font-size: .62rem;
 	}
 
-	#cbi-wireless .td {
+	#cbi-wireless > #wifi_assoclist_table .td {
 		overflow: hidden;
+	}
+
+	#cbi-wireless > .cbi-section-node .td,
+	.Interfaces .td.cbi-section-actions {
+		text-align: center !important;
+	}
+
+	[data-page="admin-status-processes"] .td[data-title="Hang Up"]::before,
+	[data-page="admin-status-processes"] .td[data-title="Terminate"]::before,
+	[data-page="admin-status-processes"] .td[data-title="Kill"]::before {
+		display: none;
 	}
 
 	.hide-sm,
 	.hide-xs:not([data-title="MAC-Address"]) {
 		display: none;
+	}
+
+	.cbi-modal {
+		padding: .5rem;
+	}
+
+	.cbi-modal .cbi-value {
+		padding: 0 0 .25rem 0;
+	}
+
+	.cbi-modal [data-tab-title] {
+		padding: 0 .25rem !important;
+	}
+
+	[data-tab-title] {
+		padding: 0 .5rem !important;
 	}
 }
 
