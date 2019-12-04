@@ -9,6 +9,7 @@ PKG_MAINTAINER:=Xingwang Liao <kuoruan@gmail.com>
 PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
 
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/kernel.mk
 
 define Package/qos-gargoyle
 	SECTION:=net
@@ -39,7 +40,7 @@ define Build/Compile
 		$(TARGET_CONFIGURE_OPTS) \
 		CFLAGS="$(TARGET_CFLAGS) -I $(STAGING_DIR)/usr/include" \
 		LDFLAGS="$(TARGET_LDFLAGS) -L $(STAGING_DIR)/usr/lib" \
-		BUILD_DIR="$(BUILD_DIR)" \
+		BUILD_DIR="$(KERNEL_BUILD_DIR)" \
 		all
 endef
 

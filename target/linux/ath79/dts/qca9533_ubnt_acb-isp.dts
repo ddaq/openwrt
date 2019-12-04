@@ -10,6 +10,10 @@
 	compatible = "ubnt,acb-isp", "qca,qca9533";
 	model = "Ubiquiti airCube ISP";
 
+	aliases {
+		label-mac-device = &wmac;
+	};
+
 	keys {
 		compatible = "gpio-keys";
 
@@ -91,5 +95,4 @@
 &wmac {
 	status = "okay";
 	mtd-cal-data = <&eeprom 0x1000>;
-	mtd-mac-address = <&eeprom 0x1002>;
 };

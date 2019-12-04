@@ -81,6 +81,7 @@ start_service() {
 	    timeout connect ${timeout:-1000}ms
 	    timeout client 5s
 	    timeout server 10s
+	    default-server init-addr last,libc,none
 
 	listen admin_stats
 	    bind 0.0.0.0:${admin_stats:-7777}

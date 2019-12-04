@@ -6,14 +6,14 @@ TCDIR:=$(shell if [ -e "${BUILD_DIR}/iproute2-full" ] ; then echo "${BUILD_DIR}/
 #below.  Mostly for debug
 #LDLIBS += -lncurses
 
-LDLIBS += -lm
+LDLIBS += -lm -lcap
 
 TCOBJS := $(TCDIR)/tc/tc_util.o
 TCOBJS += $(TCDIR)/tc/tc_core.o
 TCOBJS += $(TCDIR)/tc/q_hfsc.o
 TCOBJS += $(TCDIR)/lib/libnetlink.a
 TCOBJS += $(TCDIR)/lib/libutil.a
-LDFLAGS += -Wl,-export-dynamic 
+LDFLAGS += -Wl,-export-dynamic
 
 all: qosmon
 

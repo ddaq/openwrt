@@ -4,9 +4,9 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=vpn-policy-routing
-PKG_VERSION:=0.0.4
-PKG_RELEASE:=4
-PKG_LICENSE:=GPL-3.0+
+PKG_VERSION:=0.2.1
+PKG_RELEASE:=0
+PKG_LICENSE:=GPL-3.0-or-later
 PKG_MAINTAINER:=Stan Grishin <stangri@melmac.net>
 
 include $(INCLUDE_DIR)/package.mk
@@ -49,6 +49,10 @@ define Package/vpn-policy-routing/install
 	$(INSTALL_DATA) ./files/vpn-policy-routing.firewall.hotplug $(1)/etc/hotplug.d/firewall/99-vpn-policy-routing
 	$(INSTALL_DIR) $(1)/etc/hotplug.d/iface
 	$(INSTALL_DATA) ./files/vpn-policy-routing.iface.hotplug $(1)/etc/hotplug.d/iface/70-vpn-policy-routing
+	$(INSTALL_DIR) $(1)/etc/
+	$(INSTALL_DATA) ./files/vpn-policy-routing.aws.user $(1)/etc/vpn-policy-routing.aws.user
+	$(INSTALL_DIR) $(1)/etc/
+	$(INSTALL_DATA) ./files/vpn-policy-routing.netflix.user $(1)/etc/vpn-policy-routing.netflix.user
 endef
 
 define Package/vpn-policy-routing/postinst
