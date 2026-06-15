@@ -206,7 +206,6 @@ h6 {
 	font-weight: 400;
 	line-height: 1.1;
 	color: inherit;
-	/*--clear:both;*/
 }
 
 html {
@@ -602,47 +601,47 @@ header > .container > a[class="brand"]:after {
     -webkit-font-smoothing: antialiased;
 }
 
-.main > .main-left > .nav > .slide > a[data-title="Status"]:before {
+.main > .main-left > .nav > .slide > a[data-title="status"]:before {
     content: "\e026";
 }
 
-.main > .main-left > .nav > .slide > a[data-title="System"]:before {
+.main > .main-left > .nav > .slide > a[data-title="system"]:before {
     content: "\e00a";
 }
 
-.main > .main-left > .nav > .slide > a[data-title="Network"]:before {
+.main > .main-left > .nav > .slide > a[data-title="network"]:before {
     content: "\e00e";
 }
-.main > .main-left > .nav > .slide > a[data-title="VPN"]:before {
+.main > .main-left > .nav > .slide > a[data-title="vpn"]:before {
     content: "\e029";
 }
 
-.main > .main-left > .nav > .slide > a[data-title="Services"]:before {
+.main > .main-left > .nav > .slide > a[data-title="services"]:before {
     content: "\e01b";
 }
 
-.main > .main-left > .nav > .slide > a[data-title="NAS"]:before {
+.main > .main-left > .nav > .slide > a[data-title="nas"]:before {
     content: "\e00b";
 }
 
-.main> .main-left> .nav> .slide > a[data-title=Statistics]:before {
+.main> .main-left> .nav> .slide > a[data-title="statistics"]:before {
     content: "\e00f";
 }
 
-.main > .main-left > .nav > .slide > a[data-title="Control"]:before {
+.main > .main-left > .nav > .slide > a[data-title="control"]:before {
     content: "\e023";
 }
 
-.main > .main-left > .nav > .slide > a[data-title="Bandwidth Monitor"]:before {
+.main > .main-left > .nav > .slide > a[data-title="nlbw"]:before {
     content: "\e00f";
 }
 
-.main > .main-left > .nav > li > a[data-title="Logout"] {
+.main > .main-left > .nav > li > a[data-title="logout"] {
     padding-left:36px;
     line-height:40px;
 }
 
-.main > .main-left > .nav > li > a[data-title="Logout"]:before {
+.main > .main-left > .nav > li > a[data-title="logout"]:before {
     content: "\e005";
     display: inline-block;
     top: -1px;
@@ -1137,10 +1136,24 @@ form[method="post"] + form[method="post"],
     background-color: #617486 !important;
 }
 
+.cbi-button-up,
+.cbi-button-down {
+	font-size: 1.2rem;
+	display: inline-block;
+	min-width: 0;
+	padding: .2rem .3rem;
+	color: transparent !important;
+	background: url(./icons/arrow.svg) no-repeat center;
+	background-size: 12px 20px;
+	background-color: #337ab7 !important;
+	border-color: #2e6da4 !important;
+}
+
+.cbi-button-up {
+	transform: scaleY(-1);
+}
 .cbi-button-find,
 .cbi-button-link,
-.cbi-button-up,
-.cbi-button-down,
 .cbi-button-neutral {
     color: #fff !important;
     background-color: #337ab7 !important;
@@ -1662,7 +1675,6 @@ form[method="post"] + form[method="post"],
 	min-width: 270px;
 	max-width: 600px;
 	min-height: 32px;
-	max-height: 2400px;
 	margin: 5em auto;
 	padding: 1em;
 	border-radius: 3px !important;
@@ -2225,7 +2237,8 @@ span[data-tooltip] .label {
 	flex-direction: column;
 }
 
-.label {
+.label,
+[data-indicator] {
 	font-size: .8rem;
 	font-weight: bold;
 	padding: .3rem .8rem;
@@ -2303,7 +2316,8 @@ header > .fill > .container > .pull-right > * {
 }
 
 
-.notice {
+.notice,
+[data-indicator]:not([data-style="inactive"]) {
 	background-color: #5BC0DE;
 }
 
@@ -2647,7 +2661,8 @@ body.lang_pl.node-main-login .cbi-value-title {
 		max-width: 21.9rem;
 	}
 
-	.label {
+	.label,
+	[data-indicator] {
 		padding: .2rem .6rem;
 	}
 

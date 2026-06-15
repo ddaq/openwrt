@@ -1,0 +1,264 @@
+diff --git a/net/samba4/Config.in b/net/samba4/Config.in
+index 988c05f..d373a2c 100644
+--- a/net/samba4/Config.in
++++ b/net/samba4/Config.in
+@@ -51,3 +51,10 @@ config SAMBA4_SERVER_AD_DC
+ 		HINT: see section (# Using the Domain Controller as a File Server)
+ 		NOTE: Extroot is recommend for this setup, as it is not optimized to run completely from RAM/tempfs!
+ 	default n
++
++config SAMBA4_SERVER_HOTPLUG
++	bool "enable HOTPLUG support"
++	depends on PACKAGE_samba4-server
++	help
++		Provide hotplug support.
++	default y
+diff --git a/net/samba4/Makefile b/net/samba4/Makefile
+index f846be3..07f51a3 100644
+--- a/net/samba4/Makefile
++++ b/net/samba4/Makefile
+@@ -29,6 +29,7 @@ PKG_CONFIG_DEPENDS:= \
+ 	CONFIG_SAMBA4_SERVER_VFS \
+ 	CONFIG_SAMBA4_SERVER_VFSX \
+ 	CONFIG_SAMBA4_SERVER_AD_DC \
++	CONFIG_SAMBA4_SERVER_HOTPLUG \
+ 	CONFIG_PACKAGE_kmod-fs-btrfs \
+ 	CONFIG_PACKAGE_kmod-fs-xfs
+ 
+@@ -410,6 +410,12 @@ endif
+ 	$(INSTALL_CONF) ./files/samba.config $(1)/etc/config/samba4
+ 	$(INSTALL_DATA) ./files/smb.conf.template $(1)/etc/samba
+ 	$(INSTALL_BIN) ./files/samba.init $(1)/etc/init.d/samba4
++ifeq ($(CONFIG_SAMBA4_SERVER_HOTPLUG),y)
++	$(INSTALL_DIR) $(1)/lib/samba
++	$(INSTALL_DATA) ./files/samba.sh $(1)/lib/samba/samba.sh
++	$(INSTALL_DIR) $(1)/etc/hotplug.d/block
++	$(INSTALL_DATA) ./files/samba.hotplug $(1)/etc/hotplug.d/block/60-samba
++endif
+ endef
+ 
+ define Package/samba4-server/conffiles
+diff --git a/net/samba4/files/samba.hotplug b/net/samba4/files/samba.hotplug
+new file mode 100644
+index 0000000..111f0cd
+--- /dev/null
++++ b/net/samba4/files/samba.hotplug
+@@ -0,0 +1,11 @@
++. /lib/samba/samba.sh
++
++samba_dev_filter $DEVNAME
++[ "$FLAG_DEV_TYPE" = "not-mtd" ]  || exit
++
++config_load samba4
++case $ACTION in
++	add) samba_add_section $DEVNAME;;
++	remove) samba_delete_section $DEVNAME;;
++esac
++uci commit samba4
+diff --git a/net/samba4/files/samba.sh b/net/samba4/files/samba.sh
+new file mode 100644
+index 0000000..5416cbc
+--- /dev/null
++++ b/net/samba4/files/samba.sh
+@@ -0,0 +1,89 @@
++#!/bin/sh
++#
++# Copyright (C) 2018 OpenWrt.org
++# Copyright (C) 2018 rosysong@rosinson.com
++#
++
++. /lib/functions.sh
++
++FLAG_DEV_TYPE=
++FLAG_DEV_MOPT=
++FLAG_HAS_SECT=
++
++samba_dev_filter() { # <devname> <[path,/dev/]>
++	case $1 in
++	${2}mtdblock*|\
++	${2}ubi*)
++		FLAG_DEV_TYPE="mtd"
++		;;
++	${2}loop*|\
++	${2}mmcblk*|\
++	${2}sd*|\
++	${2}hd*|\
++	${2}md*|\
++	${2}nvme*|\
++	${2}vd*|\
++	${2}xvd*)
++		FLAG_DEV_TYPE="not-mtd"
++		;;
++	*)
++		[ -b ${2}${1} ] && FLAG_DEV_TYPE="not-mtd"
++		[ -b /dev/mapper/$1 ] && FLAG_DEV_TYPE="not-mtd"
++		;;
++	esac
++}
++
++samba_cfg_lookup() { # <section> <name>
++	config_get name $1 name
++	[ "$name" = "$2" ] || return
++	FLAG_HAS_SECT=y
++}
++
++samba_cfg_delete() { # <section> <name>
++	config_get name $1 name
++	[ "$name" = "$2" ] || return
++	uci -q delete samba4.$1
++}
++
++samba_find_mount_point() { # <devname>
++	# search mount point in /proc/mounts
++	while read l; do
++		local d=$(echo $l | awk '/^\/dev/ {print $1}')
++		[ "$d" = "/dev/$1" ] || continue
++
++		FLAG_DEV_MOPT=$(echo $l | awk '/^\/dev/ {print $2}')
++		break
++	done < /proc/mounts
++}
++
++_samba_add_section() { # <devname> <mount point>
++	uci -q batch <<-EOF
++		add samba4 sambashare
++		set samba4.@sambashare[-1].browseable='yes'
++		set samba4.@sambashare[-1].name='$1'
++		set samba4.@sambashare[-1].path='$2'
++		set samba4.@sambashare[-1].users='root'
++		set samba4.@sambashare[-1].read_only='no'
++		set samba4.@sambashare[-1].guest_ok='yes'
++		set samba4.@sambashare[-1].create_mask='0755'
++		set samba4.@sambashare[-1].dir_mask='0755'
++	EOF
++}
++
++samba_add_section() { # <devname> [<mount point>]
++	FLAG_HAS_SECT=
++	FLAG_DEV_MOPT=
++
++	config_foreach samba_cfg_lookup sambashare $1
++	[ -z "$FLAG_HAS_SECT" ] || return
++
++	samba_find_mount_point $1
++	[ -n "$FLAG_DEV_MOPT" ] || return
++
++	[ -n "$2" -a "$2" = "$FLAG_DEV_MOPT" ] || \
++		_samba_add_section $1 $FLAG_DEV_MOPT
++}
++
++samba_delete_section() { # <devname>
++	config_foreach samba_cfg_delete sambashare $1
++}
+diff --git a/net/samba4/samba4-libs/etc/hotplug.d/block/60-samba b/net/samba4/samba4-libs/etc/hotplug.d/block/60-samba
+new file mode 100644
+index 0000000..111f0cd
+--- /dev/null
++++ b/net/samba4/samba4-libs/etc/hotplug.d/block/60-samba
+@@ -0,0 +1,11 @@
++. /lib/samba/samba.sh
++
++samba_dev_filter $DEVNAME
++[ "$FLAG_DEV_TYPE" = "not-mtd" ]  || exit
++
++config_load samba4
++case $ACTION in
++	add) samba_add_section $DEVNAME;;
++	remove) samba_delete_section $DEVNAME;;
++esac
++uci commit samba4
+diff --git a/net/samba4/samba4-libs/lib/samba/samba.sh b/net/samba4/samba4-libs/lib/samba/samba.sh
+new file mode 100644
+index 0000000..5416cbc
+--- /dev/null
++++ b/net/samba4/samba4-libs/lib/samba/samba.sh
+@@ -0,0 +1,89 @@
++#!/bin/sh
++#
++# Copyright (C) 2018 OpenWrt.org
++# Copyright (C) 2018 rosysong@rosinson.com
++#
++
++. /lib/functions.sh
++
++FLAG_DEV_TYPE=
++FLAG_DEV_MOPT=
++FLAG_HAS_SECT=
++
++samba_dev_filter() { # <devname> <[path,/dev/]>
++	case $1 in
++	${2}mtdblock*|\
++	${2}ubi*)
++		FLAG_DEV_TYPE="mtd"
++		;;
++	${2}loop*|\
++	${2}mmcblk*|\
++	${2}sd*|\
++	${2}hd*|\
++	${2}md*|\
++	${2}nvme*|\
++	${2}vd*|\
++	${2}xvd*)
++		FLAG_DEV_TYPE="not-mtd"
++		;;
++	*)
++		[ -b ${2}${1} ] && FLAG_DEV_TYPE="not-mtd"
++		[ -b /dev/mapper/$1 ] && FLAG_DEV_TYPE="not-mtd"
++		;;
++	esac
++}
++
++samba_cfg_lookup() { # <section> <name>
++	config_get name $1 name
++	[ "$name" = "$2" ] || return
++	FLAG_HAS_SECT=y
++}
++
++samba_cfg_delete() { # <section> <name>
++	config_get name $1 name
++	[ "$name" = "$2" ] || return
++	uci -q delete samba4.$1
++}
++
++samba_find_mount_point() { # <devname>
++	# search mount point in /proc/mounts
++	while read l; do
++		local d=$(echo $l | awk '/^\/dev/ {print $1}')
++		[ "$d" = "/dev/$1" ] || continue
++
++		FLAG_DEV_MOPT=$(echo $l | awk '/^\/dev/ {print $2}')
++		break
++	done < /proc/mounts
++}
++
++_samba_add_section() { # <devname> <mount point>
++	uci -q batch <<-EOF
++		add samba4 sambashare
++		set samba4.@sambashare[-1].browseable='yes'
++		set samba4.@sambashare[-1].name='$1'
++		set samba4.@sambashare[-1].path='$2'
++		set samba4.@sambashare[-1].users='root'
++		set samba4.@sambashare[-1].read_only='no'
++		set samba4.@sambashare[-1].guest_ok='yes'
++		set samba4.@sambashare[-1].create_mask='0755'
++		set samba4.@sambashare[-1].dir_mask='0755'
++	EOF
++}
++
++samba_add_section() { # <devname> [<mount point>]
++	FLAG_HAS_SECT=
++	FLAG_DEV_MOPT=
++
++	config_foreach samba_cfg_lookup sambashare $1
++	[ -z "$FLAG_HAS_SECT" ] || return
++
++	samba_find_mount_point $1
++	[ -n "$FLAG_DEV_MOPT" ] || return
++
++	[ -n "$2" -a "$2" = "$FLAG_DEV_MOPT" ] || \
++		_samba_add_section $1 $FLAG_DEV_MOPT
++}
++
++samba_delete_section() { # <devname>
++	config_foreach samba_cfg_delete sambashare $1
++}

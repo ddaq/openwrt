@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-rslsync
-PKG_VERSION:=2.6.3
+PKG_VERSION:=2.6.4
 PKG_RELEASE:=1
 
 PKG_MAINTAINER:=paradislover <wxu1986@gmail.com>
@@ -75,6 +75,8 @@ define Install/luci
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rslsync.zh-cn.lmo $(1)/usr/lib/lua/luci/i18n/rslsync.zh-cn.lmo
 	$(INSTALL_DATA) ./files/luci/model/rslsync.lua $(1)/usr/lib/lua/luci/model/cbi/rslsync.lua
 	$(INSTALL_DATA) ./files/luci/controller/rslsync.lua $(1)/usr/lib/lua/luci/controller/rslsync.lua
+	$(INSTALL_DIR) $(1)/usr/share/rpcd/acl.d
+	$(INSTALL_DATA) ./files/usr/share/rpcd/acl.d/luci-app-rslsync.json $(1)/usr/share/rpcd/acl.d/luci-app-rslsync.json
 endef
 
 define Install/lib

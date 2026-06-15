@@ -1,0 +1,25 @@
+diff --git a/libs/tcp_wrappers/Makefile b/libs/tcp_wrappers/Makefile
+index ca9bfd2..7a1e447 100644
+--- a/libs/tcp_wrappers/Makefile
++++ b/libs/tcp_wrappers/Makefile
+@@ -32,7 +32,7 @@ endef
+ 
+ TARGET_CFLAGS += $(FPIC)
+ 
+-ifeq ($(CONFIG_USE_MUSL),)
++ifneq ($(CONFIG_USE_UCLIBC),)
+ TARGET_EXTRA_LIBS:=LIBS=-lnsl
+ endif
+ 
+diff --git a/net/transmission/files/transmission.init b/net/transmission/files/transmission.init
+index ae3e5e5..24377b1 100644
+--- a/net/transmission/files/transmission.init
++++ b/net/transmission/files/transmission.init
+@@ -161,3 +161,7 @@ start_service() {
+ reload_service() {
+ 	procd_send_signal "$PROG"
+ }
++
++service_triggers() {
++	procd_add_reload_trigger 'transmission'
++}

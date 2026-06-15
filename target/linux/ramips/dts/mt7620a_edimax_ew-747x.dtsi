@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 
-/dts-v1/;
-
 #include "mt7620a.dtsi"
 
 #include <dt-bindings/gpio/gpio.h>
@@ -15,10 +13,6 @@
 		led-failsafe = &led_power;
 		led-running = &led_power;
 		led-upgrade = &led_power;
-	};
-
-	chosen {
-		bootargs = "console=ttyS0,57600";
 	};
 
 	keys {
@@ -100,31 +94,28 @@
 	};
 };
 
-&pinctrl {
-	state_default: pinctrl0 {
-		gpio {
-			ralink,group = "i2c", "uartf", "nd_sd", "rgmii2";
-			ralink,function = "gpio";
-		};
+&state_default {
+	gpio {
+		groups = "i2c", "uartf", "nd_sd", "rgmii2";
+		function = "gpio";
 	};
+};
 
+&pinctrl {
 	phy_reset_pins: phy-reset {
 		gpio {
-			ralink,group = "spi refclk";
-			ralink,function = "gpio";
+			groups = "spi refclk";
+			function = "gpio";
 		};
 	};
 };
 
 &ethernet {
-
-	status = "okay";
-	mtd-mac-address = <&factory 0x4>;
-
 	pinctrl-names = "default";
 	pinctrl-0 = <&rgmii1_pins &mdio_pins &phy_reset_pins>;
 
-	mediatek,portmap = "l";
+	mtd-mac-address = <&factory 0x4>;
+
 	mediatek,mdio-mode = <1>;
 
 	phy-reset-gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
@@ -176,7 +167,7 @@
 };
 
 &wmac {
-	ralink,mtd-eeprom = <&factory 0>;
+	ralink,mtd-eeprom = <&factory 0x0>;
 };
 
 &pcie {
